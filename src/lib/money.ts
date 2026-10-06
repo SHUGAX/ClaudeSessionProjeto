@@ -102,3 +102,14 @@ export function formatMoney(
     return `${rounded} ${currency}`;
   }
 }
+
+/**
+ * Removes insignificant trailing zeros from a decimal string while keeping at
+ * least `minDecimals` places ("369.0000" → "369.00"; "2.500000" → "2.5" with 0).
+ */
+export function trimDecimal(value: string, minDecimals = 0): string {
+  const d = new Decimal(value);
+  const natural = d.toFixed();
+  const decimals = natural.includes(".") ? natural.split(".")[1]!.length : 0;
+  return d.toFixed(Math.max(decimals, minDecimals));
+}

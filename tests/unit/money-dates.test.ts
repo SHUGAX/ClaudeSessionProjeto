@@ -65,3 +65,12 @@ describe("business dates", () => {
     expect(todayIso("Europe/Lisbon", new Date("2024-06-30T23:30:00Z"))).toBe("2024-07-01");
   });
 });
+
+describe("trimDecimal", () => {
+  it("keeps a minimum number of decimals", async () => {
+    const { trimDecimal } = await import("@/lib/money");
+    expect(trimDecimal("369.0000", 2)).toBe("369.00");
+    expect(trimDecimal("2.500000", 0)).toBe("2.5");
+    expect(trimDecimal("12.3450", 2)).toBe("12.345");
+  });
+});

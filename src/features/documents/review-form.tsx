@@ -12,7 +12,7 @@ import { toast } from "@/components/ui/toast";
 import type { DuplicateMatch } from "@/lib/documents/duplicates";
 import { validateDocument, type ValidationIssue } from "@/lib/documents/validation";
 import { useI18n } from "@/lib/i18n/client";
-import { parseAmount } from "@/lib/money";
+import { parseAmount, trimDecimal } from "@/lib/money";
 import { matchSupplier } from "@/lib/suppliers/matching";
 import { DOCUMENT_TYPES } from "@/lib/supabase/types";
 import { cn } from "@/lib/utils";
@@ -71,9 +71,10 @@ type FormValues = {
 };
 
 /** Shows decimal strings with the locale's decimal separator (input accepts both). */
-function toInputAmount(value: string | null, locale: string): string {
-  if (value == null) return "";
-  return locale === "pt-PT" ? value.replace(".", ",") : value;
+function toInputAmount(value: string | null, locale: string, minDecimals = 2): string {
+  if (value == null || value === "") return "";
+  const trimmed = trimDecimal(value, minDecimals);
+  return locale === "pt-PT" ? trimmed.replace(".", ",") : trimmed;
 }
 
 function initialValues(doc: ReviewDocument, locale: string): FormValues {
@@ -128,9 +129,9 @@ export function ReviewForm({
     lineItems.map((li) => ({
       ...emptyLineItem(),
       description: li.description ?? "",
-      quantity: toInputAmount(li.quantity, locale),
+      quantity: toInputAmount(li.quantity, locale, 0),
       unitPrice: toInputAmount(li.unitPrice, locale),
-      taxRate: toInputAmount(li.taxRate, locale),
+      taxRate: toInputAmount(li.taxRate, locale, 0),
       taxAmount: toInputAmount(li.taxAmount, locale),
       lineTotal: toInputAmount(li.lineTotal, locale),
     })),

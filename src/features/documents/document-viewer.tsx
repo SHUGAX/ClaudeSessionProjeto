@@ -157,7 +157,8 @@ function PdfViewer({ url, toolbarExtras, onError }: { url: string; toolbarExtras
     let loadingTask: { destroy: () => Promise<void> } | null = null;
     (async () => {
       try {
-        const pdfjs = await import("pdfjs-dist");
+        // Legacy build: broader browser support (older Safari/Chromium versions).
+        const pdfjs = await import("pdfjs-dist/legacy/build/pdf.mjs");
         pdfjs.GlobalWorkerOptions.workerSrc = "/pdf.worker.min.mjs";
         const task = pdfjs.getDocument({ url });
         loadingTask = task;
