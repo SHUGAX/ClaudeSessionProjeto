@@ -60,7 +60,11 @@ export async function loginAction(_prev: FormState, formData: FormData): Promise
   const { data, error } = await supabase.auth.signInWithPassword({ email, password });
   if (error || !data.user) {
     if (error?.status === 429) return { error: "auth.rateLimited" };
-    logger.info("login_failed", { reason: error?.code ?? "unknown" });
+    logger.info("login_failed", {
+      reason: error?.code ?? "unknown",
+      status: error?.status,
+      name: error?.name,
+    });
     return { error: "auth.invalidCredentials" };
   }
   await applyPreferredLocale(data.user.id);

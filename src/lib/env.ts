@@ -5,7 +5,10 @@ import { z } from "zod";
  * time by Next.js, so each variable must be referenced explicitly.
  */
 const publicSchema = z.object({
-  NEXT_PUBLIC_SUPABASE_URL: z.url(),
+  NEXT_PUBLIC_SUPABASE_URL: z.url().refine((v) => new URL(v).pathname === "/" && !v.endsWith("/"), {
+    message:
+      "must be the project base URL only, e.g. https://<ref>.supabase.co (no /rest/v1, no trailing slash)",
+  }),
   NEXT_PUBLIC_SUPABASE_ANON_KEY: z.string().min(1),
   NEXT_PUBLIC_ROOT_DOMAIN: z
     .string()
@@ -31,7 +34,7 @@ export function publicEnv(): PublicEnv {
   if (!parsed.success) {
     throw new Error(
       `Invalid public environment configuration: ${parsed.error.issues
-        .map((i) => i.path.join("."))
+        .map((i) => `${i.path.join(".")} (${i.message})`)
         .join(", ")}. See .env.example.`,
     );
   }
