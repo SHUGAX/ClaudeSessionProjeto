@@ -16,6 +16,8 @@ import { resolveHost } from "@/lib/tenancy/host";
 // Paths served identically on every host (never rewritten into a tenant).
 const GLOBAL_PREFIXES = ["/api", "/auth", "/legal", "/invite", "/_next"];
 const GLOBAL_FILES = new Set(["/pdf.worker.min.mjs", "/favicon.ico", "/icon.svg", "/robots.txt"]);
+// Central account pages that also work on the admin host.
+const CENTRAL_PAGES = ["/login", "/forgot-password", "/reset-password", "/select-organization", "/no-access"];
 
 function isGlobalPath(pathname: string): boolean {
   return GLOBAL_FILES.has(pathname) || GLOBAL_PREFIXES.some((p) => pathname === p || pathname.startsWith(`${p}/`));
@@ -41,7 +43,12 @@ export async function proxy(request: NextRequest) {
       return new NextResponse("Not found", { status: 404 });
     }
     rewriteTo = new URL(`/t/${hostContext.slug}${pathname === "/" ? "" : pathname}${url.search}`, request.url);
-  } else if (hostContext.kind === "admin" && !isGlobalPath(pathname)) {
+  } else if (
+    hostContext.kind === "admin" &&
+    !isGlobalPath(pathname) &&
+    !pathname.startsWith("/admin") &&
+    !CENTRAL_PAGES.includes(pathname)
+  ) {
     rewriteTo = new URL(`/admin${pathname === "/" ? "" : pathname}${url.search}`, request.url);
   } else if (routing === "subdomain" && hostContext.kind === "central" && pathname.startsWith("/t/")) {
     // Canonicalise path-style tenant URLs to the tenant subdomain.

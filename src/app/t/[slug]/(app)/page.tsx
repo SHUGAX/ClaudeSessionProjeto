@@ -148,7 +148,7 @@ export default async function DashboardPage({ params }: { params: Promise<{ slug
       </div>
       <p className="mt-2 text-xs text-muted-foreground">{t("dashboard.validatedOnly", { currency })}</p>
 
-      <div className="mt-6 grid grid-cols-1 gap-5 xl:grid-cols-3">
+      <div className="mt-6 grid grid-cols-1 items-start gap-5 xl:grid-cols-3">
         <Card className="xl:col-span-2">
           <CardHeader title={t("dashboard.byMonth")} />
           <CardContent>

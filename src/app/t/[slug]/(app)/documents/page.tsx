@@ -129,7 +129,7 @@ export default async function DocumentsPage({
                     <TH className="text-right">{t("documents.columns.total")}</TH>
                     <TH>{t("documents.columns.status")}</TH>
                     <TH className="hidden xl:table-cell">{t("documents.columns.category")}</TH>
-                    <TH className="hidden xl:table-cell">{t("documents.columns.uploadedAt")}</TH>
+                    <TH className="hidden 2xl:table-cell">{t("documents.columns.uploadedAt")}</TH>
                   </tr>
                 </THead>
                 <TBody>
@@ -175,7 +175,7 @@ export default async function DocumentsPage({
                           </div>
                         </TD>
                         <TD className="hidden text-muted-foreground xl:table-cell">{row.categories?.name ?? "—"}</TD>
-                        <TD className="tabular hidden whitespace-nowrap text-muted-foreground xl:table-cell">
+                        <TD className="tabular hidden whitespace-nowrap text-muted-foreground 2xl:table-cell">
                           {formatTimestamp(row.created_at, locale, timezone)}
                         </TD>
                       </TR>

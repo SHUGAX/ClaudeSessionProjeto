@@ -10,6 +10,10 @@ const supabaseOrigin = (() => {
   }
 })();
 
+const rootHost = (process.env.NEXT_PUBLIC_ROOT_DOMAIN ?? "localhost:3000").split(":")[0] ?? "localhost";
+// Forms may post/redirect across tenant subdomains of the root domain only.
+const formTargets = `'self' https://*.${rootHost} https://${rootHost}${isDev ? ` http://*.${rootHost}:* http://${rootHost}:*` : ""}`;
+
 // Strict-by-default Content Security Policy. 'unsafe-inline' for scripts is
 // required by Next.js hydration without nonces; everything else is locked down.
 const csp = [
@@ -24,7 +28,7 @@ const csp = [
   "frame-ancestors 'none'",
   "object-src 'none'",
   "base-uri 'self'",
-  "form-action 'self'",
+  `form-action ${formTargets}`,
   ...(isDev ? [] : ["upgrade-insecure-requests"]),
 ].join("; ");
 
@@ -40,6 +44,8 @@ const securityHeaders = [
 
 const nextConfig: NextConfig = {
   poweredByHeader: false,
+  // Local subdomain development (e.g. empresa-a.localhost / *.lvh.me).
+  allowedDevOrigins: [rootHost, `*.${rootHost}`],
   reactStrictMode: true,
   experimental: {
     serverActions: { bodySizeLimit: "2mb" },
