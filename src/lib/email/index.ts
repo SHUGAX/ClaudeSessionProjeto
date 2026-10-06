@@ -26,6 +26,7 @@ class ConsoleEmailProvider implements EmailProvider {
     });
     if (env.NODE_ENV !== "production" && message.devLink) {
       // Development convenience only: lets developers follow invitation links locally.
+      // eslint-disable-next-line no-console -- never runs in production
       console.info(`[dev email] ${message.tag} → ${message.to}: ${message.devLink}`);
     }
     return { delivered: false };
