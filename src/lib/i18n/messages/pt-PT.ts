@@ -8,6 +8,7 @@ export const ptPT = {
     appTagline: "Gestão inteligente de documentos empresariais",
     save: "Guardar",
     saving: "A guardar…",
+    saved: "Guardado.",
     cancel: "Cancelar",
     close: "Fechar",
     confirm: "Confirmar",

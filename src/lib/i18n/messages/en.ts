@@ -5,6 +5,7 @@ export const en: Messages = {
     appTagline: "Intelligent business document management",
     save: "Save",
     saving: "Saving…",
+    saved: "Saved.",
     cancel: "Cancel",
     close: "Close",
     confirm: "Confirm",
