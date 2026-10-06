@@ -1,0 +1,47 @@
+# dependencies
+node_modules/
+.pnpm-store/
+
+# next.js
+.next/
+out/
+next-env.d.ts
+*.tsbuildinfo
+
+# production
+build/
+
+# env files (never commit secrets)
+.env
+.env.*
+!.env.example
+
+# generated assets
+public/pdf.worker.min.mjs
+
+# testing
+coverage/
+test-results/
+playwright-report/
+playwright/.cache/
+blob-report/
+
+# supabase local
+supabase/.branches/
+supabase/.temp/
+supabase/signing_keys.json
+
+# never commit customer documents or certificates
+uploads/
+*.pem
+*.key
+*.p12
+
+# misc
+.DS_Store
+.vercel
+.idea/
+.vscode/*
+!.vscode/extensions.json
+npm-debug.log*
+pnpm-debug.log*

@@ -1,0 +1,8 @@
+node_modules
+.next
+pnpm-lock.yaml
+public/pdf.worker.min.mjs
+supabase/.temp
+playwright-report
+test-results
+coverage

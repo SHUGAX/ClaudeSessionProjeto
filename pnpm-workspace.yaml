@@ -1,0 +1,8 @@
+onlyBuiltDependencies:
+  - esbuild
+  - supabase
+  - unrs-resolver
+  - sharp
+ignoredBuiltDependencies:
+  - "@google/genai"
+  - protobufjs
