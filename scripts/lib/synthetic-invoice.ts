@@ -38,7 +38,10 @@ export function invoiceTotals(invoice: SyntheticInvoice) {
 
 const pt = (v: string) => v.replace(".", ",");
 
-export async function createSyntheticInvoicePdf(invoice: SyntheticInvoice, options: { marker?: string } = {}): Promise<Uint8Array> {
+export async function createSyntheticInvoicePdf(
+  invoice: SyntheticInvoice,
+  options: { marker?: string } = {},
+): Promise<Uint8Array> {
   const totals = invoiceTotals(invoice);
   const pdf = await PDFDocument.create();
   pdf.setTitle(`Fatura ${invoice.number} (sintética)`);
@@ -46,7 +49,8 @@ export async function createSyntheticInvoicePdf(invoice: SyntheticInvoice, optio
   const page = pdf.addPage([595, 842]);
   const font = await pdf.embedFont(StandardFonts.Helvetica);
   const bold = await pdf.embedFont(StandardFonts.HelveticaBold);
-  const text = (s: string, x: number, y: number, size = 10, f = font) => page.drawText(s, { x, y, size, font: f, color: rgb(0.1, 0.1, 0.15) });
+  const text = (s: string, x: number, y: number, size = 10, f = font) =>
+    page.drawText(s, { x, y, size, font: f, color: rgb(0.1, 0.1, 0.15) });
 
   text("DOCUMENTO SINTÉTICO — DADOS FICTÍCIOS", 40, 805, 8);
   text(invoice.supplierName, 40, 770, 16, bold);
@@ -81,7 +85,12 @@ export async function createSyntheticInvoicePdf(invoice: SyntheticInvoice, optio
   const bytes = await pdf.save({ useObjectStreams: false });
   const expected = {
     document_type: "invoice",
-    supplier: { name: invoice.supplierName, tax_id: invoice.supplierTaxId, address: "Rua Exemplo, 1 · 1000-000 Lisboa", email: null },
+    supplier: {
+      name: invoice.supplierName,
+      tax_id: invoice.supplierTaxId,
+      address: "Rua Exemplo, 1 · 1000-000 Lisboa",
+      email: null,
+    },
     customer: { name: invoice.customerName, tax_id: invoice.customerTaxId },
     document_number: invoice.number,
     issue_date: invoice.issueDate,
@@ -90,7 +99,9 @@ export async function createSyntheticInvoicePdf(invoice: SyntheticInvoice, optio
     subtotal: totals.subtotal,
     tax_total: totals.tax,
     total: totals.total,
-    tax_breakdown: [{ rate: totals.lines[0]?.taxRate ?? "23", base: totals.subtotal, amount: totals.tax }],
+    tax_breakdown: [
+      { rate: totals.lines[0]?.taxRate ?? "23", base: totals.subtotal, amount: totals.tax },
+    ],
     line_items: totals.lines.map((l) => ({
       description: l.description,
       quantity: l.quantity,
@@ -102,7 +113,13 @@ export async function createSyntheticInvoicePdf(invoice: SyntheticInvoice, optio
     payment_reference: null,
     iban: null,
     purchase_order: null,
-    confidence: { overall: 0.95, supplier: 0.97, amounts: 0.96, dates: 0.95, document_number: 0.98 },
+    confidence: {
+      overall: 0.95,
+      supplier: 0.97,
+      amounts: 0.96,
+      dates: 0.95,
+      document_number: 0.98,
+    },
     warnings: [],
   };
   const trailer = `\n%MOCK_DATA:${Buffer.from(JSON.stringify(expected)).toString("base64")}\n${options.marker ? `%${options.marker}\n` : ""}`;

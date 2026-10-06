@@ -17,6 +17,10 @@ export const loginSchema = z.object({
 
 export const passwordPairSchema = z
   .object({ password: newPasswordSchema, confirm: z.string() })
-  .refine((v) => v.password === v.confirm, { message: "auth.passwordsDontMatch", path: ["confirm"] });
+  .refine((v) => v.password === v.confirm, {
+    message: "auth.passwordsDontMatch",
+    path: ["confirm"],
+  });
 
-export type FormState = { error?: string; success?: string; fieldErrors?: Record<string, string> } | undefined;
+export type FormState =
+  { error?: string; success?: string; fieldErrors?: Record<string, string> } | undefined;

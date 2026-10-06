@@ -18,7 +18,7 @@ export function Pagination({
     "inline-flex h-8 items-center gap-1 rounded-md border border-border bg-surface px-2.5 text-[13px] hover:bg-muted";
   return (
     <nav className="flex items-center justify-between gap-3 px-4 py-3" aria-label="Paginação">
-      <span className="text-[13px] text-muted-foreground">{labels.page}</span>
+      <span className="text-muted-foreground text-[13px]">{labels.page}</span>
       <div className="flex gap-2">
         {page > 1 ? (
           <Link href={hrefFor(page - 1)} className={linkCls} rel="prev">

@@ -3,7 +3,12 @@ import { notFound } from "next/navigation";
 import { Card, CardHeader } from "@/components/ui/card";
 import { PageHeader } from "@/components/ui/misc";
 import { Table, TBody, TD, TH, THead, TR } from "@/components/ui/table";
-import { InvitationControls, InviteUserDialog, MemberControls, StatusBadge } from "@/features/users/users-ui";
+import {
+  InvitationControls,
+  InviteUserDialog,
+  MemberControls,
+  StatusBadge,
+} from "@/features/users/users-ui";
 import { assignableRoles, can, canManageMember } from "@/lib/auth/permissions";
 import { formatTimestamp } from "@/lib/dates";
 import { getI18n } from "@/lib/i18n/server";
@@ -26,7 +31,9 @@ export default async function UsersPage({ params }: { params: Promise<{ slug: st
   const [members, invitations, settings] = await Promise.all([
     supabase
       .from("organization_members")
-      .select("id, user_id, role, status, joined_at, profiles!organization_members_user_id_fkey(full_name, email)")
+      .select(
+        "id, user_id, role, status, joined_at, profiles!organization_members_user_id_fkey(full_name, email)",
+      )
       .eq("organization_id", orgId)
       .order("joined_at"),
     supabase
@@ -36,14 +43,22 @@ export default async function UsersPage({ params }: { params: Promise<{ slug: st
       .eq("status", "pending")
       .gt("expires_at", new Date().toISOString())
       .order("created_at", { ascending: false }),
-    supabase.from("organization_settings").select("timezone").eq("organization_id", orgId).maybeSingle(),
+    supabase
+      .from("organization_settings")
+      .select("timezone")
+      .eq("organization_id", orgId)
+      .maybeSingle(),
   ]);
   const timezone = settings.data?.timezone ?? "Europe/Lisbon";
   const roles = assignableRoles(ctx.role);
 
   return (
     <div className="max-w-5xl">
-      <PageHeader title={t("users.title")} description={t("users.subtitle")} actions={<InviteUserDialog roles={roles} />} />
+      <PageHeader
+        title={t("users.title")}
+        description={t("users.subtitle")}
+        actions={<InviteUserDialog roles={roles} />}
+      />
       <Card>
         <Table>
           <THead>
@@ -62,19 +77,34 @@ export default async function UsersPage({ params }: { params: Promise<{ slug: st
                 <TR key={m.id}>
                   <TD>
                     <p className="font-medium">
-                      {name} {isSelf ? <span className="text-xs font-normal text-muted-foreground">{t("users.you")}</span> : null}
+                      {name}{" "}
+                      {isSelf ? (
+                        <span className="text-muted-foreground text-xs font-normal">
+                          {t("users.you")}
+                        </span>
+                      ) : null}
                     </p>
-                    <p className="text-xs text-muted-foreground">{m.profiles?.email}</p>
+                    <p className="text-muted-foreground text-xs">{m.profiles?.email}</p>
                   </TD>
                   <TD className="hidden md:table-cell">
                     <StatusBadge status={m.status} />
                   </TD>
-                  <TD className="tabular hidden text-muted-foreground lg:table-cell">{formatTimestamp(m.joined_at, locale, timezone)}</TD>
+                  <TD className="tabular text-muted-foreground hidden lg:table-cell">
+                    {formatTimestamp(m.joined_at, locale, timezone)}
+                  </TD>
                   <TD className="text-right">
                     {!isSelf && canManageMember(ctx.role, m.role) ? (
-                      <MemberControls memberId={m.id} role={m.role} status={m.status} roles={roles} name={name} />
+                      <MemberControls
+                        memberId={m.id}
+                        role={m.role}
+                        status={m.status}
+                        roles={roles}
+                        name={name}
+                      />
                     ) : (
-                      <span className="text-[13px] text-muted-foreground">{t.dynamic(`roles.${m.role}`)}</span>
+                      <span className="text-muted-foreground text-[13px]">
+                        {t.dynamic(`roles.${m.role}`)}
+                      </span>
                     )}
                   </TD>
                 </TR>
@@ -101,7 +131,9 @@ export default async function UsersPage({ params }: { params: Promise<{ slug: st
                 <TR key={i.id}>
                   <TD>{i.email}</TD>
                   <TD className="text-muted-foreground">{t.dynamic(`roles.${i.role}`)}</TD>
-                  <TD className="tabular hidden text-muted-foreground md:table-cell">{formatTimestamp(i.expires_at, locale, timezone)}</TD>
+                  <TD className="tabular text-muted-foreground hidden md:table-cell">
+                    {formatTimestamp(i.expires_at, locale, timezone)}
+                  </TD>
                   <TD>
                     <InvitationControls invitationId={i.id} />
                   </TD>

@@ -41,13 +41,20 @@ export default async function SuppliersPage({
     .order("name")
     .limit(500);
   const term = q ? sanitizeSearchTerm(q) : "";
-  if (term) query = query.or(`name.ilike."*${term}*",tax_id.ilike."*${term}*",legal_name.ilike."*${term}*"`);
+  if (term)
+    query = query.or(
+      `name.ilike."*${term}*",tax_id.ilike."*${term}*",legal_name.ilike."*${term}*"`,
+    );
 
   const [suppliers, summaries, categories, settings] = await Promise.all([
     query,
     supabase.rpc("supplier_summaries", { p_org: orgId }),
     supabase.from("categories").select("id, name").eq("organization_id", orgId).order("name"),
-    supabase.from("organization_settings").select("default_currency").eq("organization_id", orgId).maybeSingle(),
+    supabase
+      .from("organization_settings")
+      .select("default_currency")
+      .eq("organization_id", orgId)
+      .maybeSingle(),
   ]);
   const currency = settings.data?.default_currency ?? "EUR";
   const bySupplier = new Map((summaries.data ?? []).map((s) => [s.supplier_id, s]));
@@ -58,15 +65,38 @@ export default async function SuppliersPage({
       <PageHeader
         title={t("suppliers.title")}
         description={t("suppliers.subtitle")}
-        actions={can.manageSuppliers(ctx.role) ? <NewSupplierDialog categories={categories.data ?? []} /> : null}
+        actions={
+          can.manageSuppliers(ctx.role) ? (
+            <NewSupplierDialog categories={categories.data ?? []} />
+          ) : null
+        }
       />
-      <form method="get" action={tenantPath(slug, "/suppliers")} className="relative mb-4 max-w-md" role="search">
-        <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" aria-hidden />
-        <Input name="q" type="search" defaultValue={q} placeholder={t("suppliers.searchPlaceholder")} className="pl-9" aria-label={t("common.search")} />
+      <form
+        method="get"
+        action={tenantPath(slug, "/suppliers")}
+        className="relative mb-4 max-w-md"
+        role="search"
+      >
+        <Search
+          className="text-muted-foreground pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2"
+          aria-hidden
+        />
+        <Input
+          name="q"
+          type="search"
+          defaultValue={q}
+          placeholder={t("suppliers.searchPlaceholder")}
+          className="pl-9"
+          aria-label={t("common.search")}
+        />
       </form>
       <Card>
         {rows.length === 0 ? (
-          <EmptyState icon={Truck} title={t("suppliers.emptyTitle")} description={t("suppliers.emptyBody")} />
+          <EmptyState
+            icon={Truck}
+            title={t("suppliers.emptyTitle")}
+            description={t("suppliers.emptyBody")}
+          />
         ) : (
           <Table>
             <THead>
@@ -85,16 +115,25 @@ export default async function SuppliersPage({
                 return (
                   <TR key={s.id} className="relative">
                     <TD className="max-w-[18rem]">
-                      <Link href={tenantPath(slug, `/suppliers/${s.id}`)} className="truncate font-medium after:absolute after:inset-0 hover:text-primary">
+                      <Link
+                        href={tenantPath(slug, `/suppliers/${s.id}`)}
+                        className="hover:text-primary truncate font-medium after:absolute after:inset-0"
+                      >
                         {s.name}
                       </Link>
-                      {s.email ? <p className="truncate text-xs text-muted-foreground">{s.email}</p> : null}
+                      {s.email ? (
+                        <p className="text-muted-foreground truncate text-xs">{s.email}</p>
+                      ) : null}
                     </TD>
                     <TD className="tabular text-muted-foreground">{s.tax_id ?? "—"}</TD>
-                    <TD className="hidden text-muted-foreground md:table-cell">{s.categories?.name ?? "—"}</TD>
+                    <TD className="text-muted-foreground hidden md:table-cell">
+                      {s.categories?.name ?? "—"}
+                    </TD>
                     <TD className="tabular text-right">{summary?.document_count ?? 0}</TD>
-                    <TD className="tabular text-right font-medium">{formatMoney(String(summary?.total_amount ?? 0), currency, locale)}</TD>
-                    <TD className="tabular hidden text-muted-foreground lg:table-cell">
+                    <TD className="tabular text-right font-medium">
+                      {formatMoney(String(summary?.total_amount ?? 0), currency, locale)}
+                    </TD>
+                    <TD className="tabular text-muted-foreground hidden lg:table-cell">
                       {formatBusinessDate(summary?.last_issue_date ?? null, locale)}
                     </TD>
                   </TR>

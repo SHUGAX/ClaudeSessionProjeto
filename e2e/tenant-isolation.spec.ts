@@ -34,7 +34,10 @@ test.describe("authentication and tenant isolation", () => {
     await expect(page.getByText("FT 2026B/100")).toHaveCount(0);
   });
 
-  test("another tenant's document id is not accessible (page, API, signed URL)", async ({ page, request }) => {
+  test("another tenant's document id is not accessible (page, API, signed URL)", async ({
+    page,
+    request,
+  }) => {
     const foreignId = await withDb(async (db) => {
       const { rows } = await db.query(
         "select d.id from documents d join organizations o on o.id = d.organization_id where o.slug = 'empresa-b' limit 1",

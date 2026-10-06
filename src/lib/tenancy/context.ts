@@ -32,7 +32,13 @@ export const getTenantPublicInfo = cache(async (slug: string): Promise<TenantPub
   const { data, error } = await supabase.rpc("get_tenant_public_info", { p_slug: slug });
   const row = !error && data ? data[0] : undefined;
   if (!row) return null;
-  return { id: row.id, name: row.name, slug: row.slug, logoPath: row.logo_path, status: row.status };
+  return {
+    id: row.id,
+    name: row.name,
+    slug: row.slug,
+    logoPath: row.logo_path,
+    status: row.status,
+  };
 });
 
 /**
@@ -52,7 +58,9 @@ export const resolveTenant = cache(async (slug: string): Promise<TenantResolutio
   const supabase = await createSupabaseServerClient();
   const { data: membership } = await supabase
     .from("organization_members")
-    .select("role, status, organizations!inner(id, name, slug, legal_name, tax_id, logo_path, status)")
+    .select(
+      "role, status, organizations!inner(id, name, slug, legal_name, tax_id, logo_path, status)",
+    )
     .eq("organization_id", tenant.id)
     .eq("user_id", user.id)
     .eq("status", "active")

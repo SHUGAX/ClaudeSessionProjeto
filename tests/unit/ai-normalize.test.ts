@@ -4,7 +4,12 @@ import { normalizeExtraction } from "@/lib/ai/normalize";
 
 const valid = {
   document_type: "invoice",
-  supplier: { name: "EDP Comercial, S.A.", tax_id: "PT 503 504 564", address: null, email: "FATURAS@EDP.PT" },
+  supplier: {
+    name: "EDP Comercial, S.A.",
+    tax_id: "PT 503 504 564",
+    address: null,
+    email: "FATURAS@EDP.PT",
+  },
   customer: { name: "Cliente, Lda.", tax_id: "123456789" },
   document_number: "FT 2024A/123",
   issue_date: "15/03/2024",
@@ -14,7 +19,16 @@ const valid = {
   tax_total: "283,95",
   total: 1518.51,
   tax_breakdown: [{ rate: "0.23", base: "1234.56", amount: "283.95" }],
-  line_items: [{ description: "Energia", quantity: "1", unit_price: "1234,56", tax_rate: "23%", tax_amount: null, line_total: "1234.56" }],
+  line_items: [
+    {
+      description: "Energia",
+      quantity: "1",
+      unit_price: "1234,56",
+      tax_rate: "23%",
+      tax_amount: null,
+      line_total: "1234.56",
+    },
+  ],
   payment_reference: null,
   iban: "PT50 0002 0123 1234 5678 9015 4",
   purchase_order: null,
@@ -42,7 +56,12 @@ describe("normalizeExtraction", () => {
   });
 
   it("turns unparseable values into null instead of guessing", () => {
-    const result = normalizeExtraction({ ...valid, issue_date: "Março 2024", total: "n/a", currency: "Euros??" });
+    const result = normalizeExtraction({
+      ...valid,
+      issue_date: "Março 2024",
+      total: "n/a",
+      currency: "Euros??",
+    });
     expect(result.ok).toBe(true);
     if (!result.ok) return;
     expect(result.data.issueDate).toBeNull();
@@ -75,15 +94,31 @@ describe("MockExtractionProvider", () => {
   const enc = (s: string) => new TextEncoder().encode(s);
 
   it("is deterministic for the same bytes", async () => {
-    const a = await provider.extractInvoice({ bytes: enc("%PDF-1.4 abc"), mimeType: "application/pdf", documentId: "x" });
-    const b = await provider.extractInvoice({ bytes: enc("%PDF-1.4 abc"), mimeType: "application/pdf", documentId: "x" });
+    const a = await provider.extractInvoice({
+      bytes: enc("%PDF-1.4 abc"),
+      mimeType: "application/pdf",
+      documentId: "x",
+    });
+    const b = await provider.extractInvoice({
+      bytes: enc("%PDF-1.4 abc"),
+      mimeType: "application/pdf",
+      documentId: "x",
+    });
     expect(a.ok && b.ok && a.data.total === b.data.total).toBe(true);
   });
 
   it("simulates failures and invalid responses", async () => {
-    const fail = await provider.extractInvoice({ bytes: enc("%PDF MOCK_AI_FAIL"), mimeType: "application/pdf", documentId: "x" });
+    const fail = await provider.extractInvoice({
+      bytes: enc("%PDF MOCK_AI_FAIL"),
+      mimeType: "application/pdf",
+      documentId: "x",
+    });
     expect(fail.ok).toBe(false);
-    const invalid = await provider.extractInvoice({ bytes: enc("%PDF MOCK_AI_INVALID"), mimeType: "application/pdf", documentId: "x" });
+    const invalid = await provider.extractInvoice({
+      bytes: enc("%PDF MOCK_AI_INVALID"),
+      mimeType: "application/pdf",
+      documentId: "x",
+    });
     expect(invalid.ok === false && invalid.errorCode).toBe("schema_mismatch");
   });
 });

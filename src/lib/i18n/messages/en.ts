@@ -58,6 +58,7 @@ export const en: Messages = {
     suppliers: "Suppliers",
     categories: "Categories",
     alerts: "Alerts",
+    assistant: "Assistant",
     users: "Users",
     settings: "Settings",
     audit: "Audit log",
@@ -79,9 +80,11 @@ export const en: Messages = {
     forgotPassword: "Forgot your password?",
     invalidCredentials: "Incorrect email or password.",
     rateLimited: "Too many attempts. Please wait a few minutes and try again.",
-    noPublicSignup: "Access is by invitation only. If your company would like to use the platform, contact us.",
+    noPublicSignup:
+      "Access is by invitation only. If your company would like to use the platform, contact us.",
     forgotTitle: "Recover password",
-    forgotSubtitle: "Enter your email. If an account exists, you will receive a link to set a new password.",
+    forgotSubtitle:
+      "Enter your email. If an account exists, you will receive a link to set a new password.",
     sendResetLink: "Send link",
     resetLinkSent:
       "If the email is registered you will shortly receive a message with instructions. Please also check your spam folder.",
@@ -125,7 +128,8 @@ export const en: Messages = {
     wrongAccount: "This invitation is for {email}, but you are signed in with a different account.",
     invalid: "This invitation is invalid, has expired or has already been used.",
     accepted: "Invitation accepted. Welcome!",
-    limitReached: "The company has reached its plan's user limit. Please contact the administrator.",
+    limitReached:
+      "The company has reached its plan's user limit. Please contact the administrator.",
   },
   roles: {
     owner: "Owner",
@@ -245,7 +249,8 @@ export const en: Messages = {
     failed: "Failed",
     review: "Review",
     retry: "Try again",
-    processingFailed: "The file was stored but extraction failed. You can retry from the document page.",
+    processingFailed:
+      "The file was stored but extraction failed. You can retry from the document page.",
     errors: {
       unsupported_file: "Unsupported file type.",
       file_too_large: "The file exceeds the maximum allowed size.",
@@ -323,7 +328,8 @@ export const en: Messages = {
     unarchive: "Unarchive",
     markPaid: "Mark as paid",
     markUnpaid: "Mark as unpaid",
-    archiveConfirm: "Archive this document? The original and data are kept and you can unarchive it later.",
+    archiveConfirm:
+      "Archive this document? The original and data are kept and you can unarchive it later.",
     retryConfirm:
       "A new extraction will be created. Previous extractions remain in the history. Current unvalidated values will be replaced by the new suggested values.",
     saved: "Changes saved.",
@@ -333,7 +339,8 @@ export const en: Messages = {
     processingBody: "AI is extracting the data. This page refreshes automatically.",
     processingStale: "Processing is taking longer than expected.",
     failedTitle: "Automatic extraction failed",
-    failedBody: "The original document is stored safely. You can retry the extraction or fill in the data manually.",
+    failedBody:
+      "The original document is stored safely. You can retry the extraction or fill in the data manually.",
     fillManually: "Fill in manually",
     readOnly: "Read-only: your role does not allow editing documents.",
     archivedNotice: "This document is archived.",
@@ -562,7 +569,8 @@ export const en: Messages = {
       slugHint: "Lowercase letters, numbers and hyphens. Will be used at {example}.",
       plan: "Plan",
       adminEmail: "Initial administrator email",
-      adminEmailHint: "They will receive an invitation to set their own password. We never email passwords.",
+      adminEmailHint:
+        "They will receive an invitation to set their own password. We never email passwords.",
       limits: "Limits (leave empty to use the plan's)",
       maxUsers: "Max. users",
       maxDocuments: "Max. documents/month",
@@ -587,6 +595,48 @@ export const en: Messages = {
     noDocumentAccess: "For privacy, platform administration has no access to company documents.",
     invitations: "Invitations",
     members: "Users",
+  },
+  assistant: {
+    title: "Assistant",
+    subtitle: "Ask questions about your company's validated documents.",
+    placeholder: "E.g. How much did we spend with Energia Exemplo this year?",
+    ask: "Ask",
+    thinking: "Looking…",
+    examplesTitle: "Examples",
+    example1: "How much did we spend with {supplier} this year?",
+    example2: "Who are our top suppliers this year?",
+    example3: "Which invoices are overdue?",
+    example4: "Which documents need review?",
+    sourceNote:
+      "Answer computed directly from {count} document(s) in the database. AI only interprets the question — it does not generate the figures.",
+    error: "Could not answer. Try rephrasing the question.",
+    you: "You",
+    total: "Total",
+    periods: {
+      this_month: "this month",
+      last_month: "last month",
+      this_year: "this year",
+      last_year: "last year",
+      all: "all time",
+    },
+    ranges: {
+      overdue: "overdue",
+      next_7: "due in the next 7 days",
+      next_30: "due in the next 30 days",
+    },
+    answers: {
+      spend_by_supplier: "Validated total with {supplier} {period}: {total} ({count} document(s)).",
+      total_spend: "Validated total {period}{categorySuffix}: {total} ({count} document(s)).",
+      top_suppliers: "Top suppliers {period} (total {total}):",
+      spend_by_category: "Breakdown by category {period} (total {total}):",
+      invoices_due: "Unpaid invoices {range}: {count}, totalling {total}.",
+      documents_to_review: "There are {count} document(s) to review.",
+      unknown:
+        "I can't answer that yet. I can compute spend by supplier, by category or totals, list overdue or upcoming invoices, and documents to review.",
+      supplier_not_found: 'I could not find supplier "{supplier}" in this company.',
+    },
+    categorySuffix: " in category {category}",
+    uncategorized: "Uncategorised",
   },
   legal: {
     privacy: "Privacy Policy",
@@ -621,7 +671,8 @@ export const en: Messages = {
     inviteHeading: "You have been invited to {organization}",
     inviteBody: "{inviter} invited you to access {organization} on {app}, with the {role} role.",
     inviteCta: "Accept invitation",
-    inviteExpiry: "This invitation expires in {days} days. If you were not expecting this email, you can ignore it.",
+    inviteExpiry:
+      "This invitation expires in {days} days. If you were not expecting this email, you can ignore it.",
     footer: "Automatic message from {app}. Please do not reply to this email.",
   },
 };

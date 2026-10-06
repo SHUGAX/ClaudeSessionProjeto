@@ -28,7 +28,10 @@ export function interpolate(template: string, vars?: TranslationVars): string {
   );
 }
 
-export function createTranslator(messages: Messages, locale: string): TFunction & {
+export function createTranslator(
+  messages: Messages,
+  locale: string,
+): TFunction & {
   plural: (key: MessageKey, count: number, vars?: TranslationVars) => string;
   has: (key: string) => boolean;
   dynamic: (key: string, fallback?: string, vars?: TranslationVars) => string;

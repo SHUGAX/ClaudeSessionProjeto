@@ -22,7 +22,11 @@ export async function generateMetadata(): Promise<Metadata> {
   return { title: t("suppliers.title") };
 }
 
-export default async function SupplierDetailPage({ params }: { params: Promise<{ slug: string; id: string }> }) {
+export default async function SupplierDetailPage({
+  params,
+}: {
+  params: Promise<{ slug: string; id: string }>;
+}) {
   const { slug, id } = await params;
   if (!UUID.test(id)) notFound();
   const ctx = await requireTenantContext(slug);
@@ -32,7 +36,9 @@ export default async function SupplierDetailPage({ params }: { params: Promise<{
 
   const { data: supplier } = await supabase
     .from("suppliers")
-    .select("id, name, legal_name, tax_id, tax_country, email, phone, address, iban, notes, default_category_id")
+    .select(
+      "id, name, legal_name, tax_id, tax_country, email, phone, address, iban, notes, default_category_id",
+    )
     .eq("id", id)
     .eq("organization_id", orgId)
     .maybeSingle();
@@ -41,7 +47,9 @@ export default async function SupplierDetailPage({ params }: { params: Promise<{
   const [documents, summaries, categories, settings] = await Promise.all([
     supabase
       .from("documents")
-      .select("id, document_number, original_filename, issue_date, due_date, total::text, currency, status")
+      .select(
+        "id, document_number, original_filename, issue_date, due_date, total::text, currency, status",
+      )
       .eq("organization_id", orgId)
       .eq("supplier_id", id)
       .neq("status", "archived")
@@ -49,7 +57,11 @@ export default async function SupplierDetailPage({ params }: { params: Promise<{
       .limit(20),
     supabase.rpc("supplier_summaries", { p_org: orgId }),
     supabase.from("categories").select("id, name").eq("organization_id", orgId).order("name"),
-    supabase.from("organization_settings").select("default_currency").eq("organization_id", orgId).maybeSingle(),
+    supabase
+      .from("organization_settings")
+      .select("default_currency")
+      .eq("organization_id", orgId)
+      .maybeSingle(),
   ]);
   const summary = (summaries.data ?? []).find((s) => s.supplier_id === id);
   const currency = settings.data?.default_currency ?? "EUR";
@@ -57,16 +69,25 @@ export default async function SupplierDetailPage({ params }: { params: Promise<{
 
   return (
     <>
-      <Link href={tenantPath(slug, "/suppliers")} className="mb-1.5 inline-flex items-center gap-1 text-[13px] text-muted-foreground hover:text-foreground">
+      <Link
+        href={tenantPath(slug, "/suppliers")}
+        className="text-muted-foreground hover:text-foreground mb-1.5 inline-flex items-center gap-1 text-[13px]"
+      >
         <ArrowLeft className="size-3.5" aria-hidden /> {t("suppliers.title")}
       </Link>
       <h1 className="mb-1 text-xl font-semibold tracking-tight">{supplier.name}</h1>
-      <p className="tabular mb-6 text-[13px] text-muted-foreground">{supplier.tax_id ?? "—"}</p>
+      <p className="tabular text-muted-foreground mb-6 text-[13px]">{supplier.tax_id ?? "—"}</p>
 
       <div className="mb-6 grid grid-cols-1 gap-3 sm:grid-cols-3">
         <StatCard label={t("suppliers.documents")} value={summary?.document_count ?? 0} />
-        <StatCard label={t("suppliers.totalInvoiced")} value={formatMoney(String(summary?.total_amount ?? 0), currency, locale)} />
-        <StatCard label={t("suppliers.lastDocument")} value={formatBusinessDate(summary?.last_issue_date ?? null, locale)} />
+        <StatCard
+          label={t("suppliers.totalInvoiced")}
+          value={formatMoney(String(summary?.total_amount ?? 0), currency, locale)}
+        />
+        <StatCard
+          label={t("suppliers.lastDocument")}
+          value={formatBusinessDate(summary?.last_issue_date ?? null, locale)}
+        />
       </div>
 
       <div className="grid grid-cols-1 gap-5 xl:grid-cols-2">
@@ -88,12 +109,17 @@ export default async function SupplierDetailPage({ params }: { params: Promise<{
                 {(documents.data ?? []).map((d) => (
                   <TR key={d.id} className="relative">
                     <TD>
-                      <Link href={tenantPath(slug, `/documents/${d.id}`)} className="font-medium after:absolute after:inset-0 hover:text-primary">
+                      <Link
+                        href={tenantPath(slug, `/documents/${d.id}`)}
+                        className="hover:text-primary font-medium after:absolute after:inset-0"
+                      >
                         {d.document_number ?? d.original_filename}
                       </Link>
                     </TD>
                     <TD className="tabular">{formatBusinessDate(d.issue_date, locale)}</TD>
-                    <TD className="tabular text-right">{formatMoney(d.total, d.currency, locale)}</TD>
+                    <TD className="tabular text-right">
+                      {formatMoney(d.total, d.currency, locale)}
+                    </TD>
                     <TD>
                       <DocumentStatusBadge status={d.status} />
                     </TD>
@@ -106,7 +132,11 @@ export default async function SupplierDetailPage({ params }: { params: Promise<{
         <Card>
           <CardHeader title={t("suppliers.contact")} />
           <CardContent>
-            <SupplierForm supplier={supplier} categories={categories.data ?? []} disabled={!canManage} />
+            <SupplierForm
+              supplier={supplier}
+              categories={categories.data ?? []}
+              disabled={!canManage}
+            />
           </CardContent>
         </Card>
       </div>

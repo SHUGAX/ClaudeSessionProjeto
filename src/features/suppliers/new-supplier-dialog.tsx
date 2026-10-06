@@ -7,7 +7,11 @@ import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { useI18n } from "@/lib/i18n/client";
 import { SupplierForm } from "./supplier-form";
 
-export function NewSupplierDialog({ categories }: { categories: Array<{ id: string; name: string }> }) {
+export function NewSupplierDialog({
+  categories,
+}: {
+  categories: Array<{ id: string; name: string }>;
+}) {
   const { t } = useI18n();
   const [open, setOpen] = useState(false);
   return (
@@ -17,7 +21,11 @@ export function NewSupplierDialog({ categories }: { categories: Array<{ id: stri
           <Plus /> {t("suppliers.new")}
         </Button>
       </DialogTrigger>
-      <DialogContent title={t("suppliers.new")} closeLabel={t("common.close")} className="max-w-2xl">
+      <DialogContent
+        title={t("suppliers.new")}
+        closeLabel={t("common.close")}
+        className="max-w-2xl"
+      >
         <SupplierForm categories={categories} onSaved={() => setOpen(false)} />
       </DialogContent>
     </Dialog>

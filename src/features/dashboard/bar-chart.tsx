@@ -24,7 +24,8 @@ export function HorizontalBarChart({
   emptyLabel: string;
 }) {
   const max = data.reduce((acc, d) => Decimal.max(acc, new Decimal(d.value).abs()), new Decimal(0));
-  if (data.length === 0 || max.isZero()) return <p className="py-6 text-center text-[13px] text-muted-foreground">{emptyLabel}</p>;
+  if (data.length === 0 || max.isZero())
+    return <p className="text-muted-foreground py-6 text-center text-[13px]">{emptyLabel}</p>;
   return (
     <ul className="flex flex-col gap-2.5">
       {data.map((d) => {
@@ -33,10 +34,15 @@ export function HorizontalBarChart({
           <>
             <div className="mb-1 flex items-baseline justify-between gap-3 text-[13px]">
               <span className="truncate">{d.label}</span>
-              <span className="tabular shrink-0 font-medium">{formatMoney(d.value, currency, locale)}</span>
+              <span className="tabular shrink-0 font-medium">
+                {formatMoney(d.value, currency, locale)}
+              </span>
             </div>
-            <div className="h-1.5 overflow-hidden rounded-full bg-muted" aria-hidden>
-              <div className="h-full rounded-full bg-primary/80" style={{ width: `${Math.max(pct, 1)}%` }} />
+            <div className="bg-muted h-1.5 overflow-hidden rounded-full" aria-hidden>
+              <div
+                className="bg-primary/80 h-full rounded-full"
+                style={{ width: `${Math.max(pct, 1)}%` }}
+              />
             </div>
           </>
         );
@@ -68,7 +74,8 @@ export function MonthlyColumnChart({
   emptyLabel: string;
 }) {
   const max = data.reduce((acc, d) => Decimal.max(acc, new Decimal(d.total)), new Decimal(0));
-  if (max.isZero()) return <p className="py-6 text-center text-[13px] text-muted-foreground">{emptyLabel}</p>;
+  if (max.isZero())
+    return <p className="text-muted-foreground py-6 text-center text-[13px]">{emptyLabel}</p>;
   const monthFormat = new Intl.DateTimeFormat(locale, { month: "short", timeZone: "UTC" });
   return (
     <figure>
@@ -80,17 +87,21 @@ export function MonthlyColumnChart({
           const pct = value.isNegative() ? 0 : value.div(max).times(100).toNumber();
           const formatted = formatMoney(d.total, currency, locale);
           return (
-            <div key={d.month} role="listitem" className="group flex h-full flex-1 flex-col items-center justify-end gap-1">
+            <div
+              key={d.month}
+              role="listitem"
+              className="group flex h-full flex-1 flex-col items-center justify-end gap-1"
+            >
               <span className="sr-only">
                 {label} {y}: {formatted}
               </span>
               <div
-                className="w-full max-w-10 rounded-t bg-primary/75 transition-colors group-hover:bg-primary"
+                className="bg-primary/75 group-hover:bg-primary w-full max-w-10 rounded-t transition-colors"
                 style={{ height: `${Math.max(pct, value.isZero() ? 0 : 2)}%` }}
                 title={`${label} ${y}: ${formatted}`}
                 aria-hidden
               />
-              <span className="text-[10px] uppercase text-muted-foreground" aria-hidden>
+              <span className="text-muted-foreground text-[10px] uppercase" aria-hidden>
                 {label}
               </span>
             </div>

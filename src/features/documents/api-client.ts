@@ -23,11 +23,19 @@ async function request<T>(url: string, init?: RequestInit): Promise<T> {
   return body;
 }
 
-export function createUploadIntent(input: { tenant: string; filename: string; size: number; documentType: string }) {
-  return request<{ documentId: string; signedUrl: string; token: string }>("/api/documents/upload-intent", {
-    method: "POST",
-    body: JSON.stringify(input),
-  });
+export function createUploadIntent(input: {
+  tenant: string;
+  filename: string;
+  size: number;
+  documentType: string;
+}) {
+  return request<{ documentId: string; signedUrl: string; token: string }>(
+    "/api/documents/upload-intent",
+    {
+      method: "POST",
+      body: JSON.stringify(input),
+    },
+  );
 }
 
 export function finalizeUpload(documentId: string) {
@@ -69,7 +77,8 @@ export function uploadToSignedUrl(
     xhr.upload.onprogress = (event) => {
       if (event.lengthComputable) onProgress(Math.round((event.loaded / event.total) * 100));
     };
-    xhr.onload = () => (xhr.status >= 200 && xhr.status < 300 ? resolve() : reject(new ApiError("upload_failed")));
+    xhr.onload = () =>
+      xhr.status >= 200 && xhr.status < 300 ? resolve() : reject(new ApiError("upload_failed"));
     xhr.onerror = () => reject(new ApiError("upload_failed"));
     const form = new FormData();
     form.append("cacheControl", "3600");

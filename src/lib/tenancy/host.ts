@@ -1,10 +1,7 @@
 import { isReservedSlug, isValidSlug } from "./slug";
 
 export type HostContext =
-  | { kind: "central" }
-  | { kind: "admin" }
-  | { kind: "tenant"; slug: string }
-  | { kind: "invalid" };
+  { kind: "central" } | { kind: "admin" } | { kind: "tenant"; slug: string } | { kind: "invalid" };
 
 function stripPort(host: string): string {
   // IPv6 literals are not used for tenant hosts; treat them as central.

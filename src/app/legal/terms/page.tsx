@@ -11,18 +11,24 @@ export default async function TermsPage() {
   const { t } = await getI18n();
   return (
     <LegalPage title={t("legal.terms")}>
-      <p>[Modelo provisório — os termos contratuais são acordados com cada cliente na proposta comercial.]</p>
+      <p>
+        [Modelo provisório — os termos contratuais são acordados com cada cliente na proposta
+        comercial.]
+      </p>
       <h2>1. Objeto do serviço</h2>
       <p>
-        Plataforma de gestão e análise de documentos empresariais recebidos pelas empresas clientes. O serviço não emite
-        faturas nem constitui software de faturação certificado.
+        Plataforma de gestão e análise de documentos empresariais recebidos pelas empresas clientes.
+        O serviço não emite faturas nem constitui software de faturação certificado.
       </p>
       <h2>2. Contas e acessos</h2>
-      <p>[Regras de criação de contas por convite, responsabilidades do administrador da empresa — a completar.]</p>
+      <p>
+        [Regras de criação de contas por convite, responsabilidades do administrador da empresa — a
+        completar.]
+      </p>
       <h2>3. Utilização de inteligência artificial</h2>
       <p>
-        Os dados extraídos automaticamente são sugestões e devem ser revistos e validados por um utilizador. O documento
-        original é sempre preservado.
+        Os dados extraídos automaticamente são sugestões e devem ser revistos e validados por um
+        utilizador. O documento original é sempre preservado.
       </p>
       <h2>4. Níveis de serviço, limites e preço</h2>
       <p>[A definir na proposta comercial.]</p>

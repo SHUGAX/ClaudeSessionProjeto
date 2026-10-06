@@ -26,11 +26,19 @@ const MAX_ZOOM = 4;
  * the page container is positioned so that future field highlights (bounding
  * boxes from the extraction) can be overlaid in page coordinates.
  */
-export function DocumentViewer({ documentId, mimeType }: { documentId: string; mimeType: string | null }) {
+export function DocumentViewer({
+  documentId,
+  mimeType,
+}: {
+  documentId: string;
+  mimeType: string | null;
+}) {
   const { t } = useI18n();
   const [reloadKey, setReloadKey] = useState(0);
   const requestKey = `${documentId}:${reloadKey}`;
-  const [result, setResult] = useState<{ key: string; url: string | null; error: boolean } | null>(null);
+  const [result, setResult] = useState<{ key: string; url: string | null; error: boolean } | null>(
+    null,
+  );
   const [actionError, setActionError] = useState(false);
 
   useEffect(() => {
@@ -67,10 +75,22 @@ export function DocumentViewer({ documentId, mimeType }: { documentId: string; m
 
   const toolbarExtras = (
     <>
-      <Button variant="ghost" size="icon-sm" onClick={openNew} aria-label={t("common.open")} title={t("common.open")}>
+      <Button
+        variant="ghost"
+        size="icon-sm"
+        onClick={openNew}
+        aria-label={t("common.open")}
+        title={t("common.open")}
+      >
         <ExternalLink />
       </Button>
-      <Button variant="ghost" size="icon-sm" onClick={download} aria-label={t("common.download")} title={t("common.download")}>
+      <Button
+        variant="ghost"
+        size="icon-sm"
+        onClick={download}
+        aria-label={t("common.download")}
+        title={t("common.download")}
+      >
         <Download />
       </Button>
     </>
@@ -79,7 +99,7 @@ export function DocumentViewer({ documentId, mimeType }: { documentId: string; m
   if (error) {
     return (
       <div className="flex h-full min-h-64 flex-col items-center justify-center gap-3 p-6 text-center">
-        <p className="text-sm text-muted-foreground">{t("review.viewerUnavailable")}</p>
+        <p className="text-muted-foreground text-sm">{t("review.viewerUnavailable")}</p>
         <Button
           variant="secondary"
           size="sm"
@@ -96,7 +116,10 @@ export function DocumentViewer({ documentId, mimeType }: { documentId: string; m
   if (!url) {
     return (
       <div className="flex h-full min-h-64 items-center justify-center">
-        <Loader2 className="size-5 animate-spin text-muted-foreground" aria-label={t("common.loading")} />
+        <Loader2
+          className="text-muted-foreground size-5 animate-spin"
+          aria-label={t("common.loading")}
+        />
       </div>
     );
   }
@@ -107,7 +130,7 @@ export function DocumentViewer({ documentId, mimeType }: { documentId: string; m
     // Most browsers cannot display TIFF natively.
     return (
       <div className="flex h-full min-h-64 flex-col items-center justify-center gap-3 p-6 text-center">
-        <p className="text-sm text-muted-foreground">{t("review.viewerUnavailable")}</p>
+        <p className="text-muted-foreground text-sm">{t("review.viewerUnavailable")}</p>
         <Button variant="secondary" size="sm" onClick={download}>
           <Download /> {t("common.download")}
         </Button>
@@ -119,29 +142,65 @@ export function DocumentViewer({ documentId, mimeType }: { documentId: string; m
 
 function Toolbar({ children }: { children: React.ReactNode }) {
   return (
-    <div className="flex flex-wrap items-center gap-1 border-b border-border bg-surface px-2 py-1.5">{children}</div>
+    <div className="border-border bg-surface flex flex-wrap items-center gap-1 border-b px-2 py-1.5">
+      {children}
+    </div>
   );
 }
 
-function ZoomControls({ zoom, setZoom, onFit }: { zoom: number; setZoom: (z: number) => void; onFit: () => void }) {
+function ZoomControls({
+  zoom,
+  setZoom,
+  onFit,
+}: {
+  zoom: number;
+  setZoom: (z: number) => void;
+  onFit: () => void;
+}) {
   const { t } = useI18n();
   return (
     <>
-      <Button variant="ghost" size="icon-sm" onClick={() => setZoom(Math.max(MIN_ZOOM, zoom / 1.2))} aria-label="Zoom −">
+      <Button
+        variant="ghost"
+        size="icon-sm"
+        onClick={() => setZoom(Math.max(MIN_ZOOM, zoom / 1.2))}
+        aria-label="Zoom −"
+      >
         <ZoomOut />
       </Button>
-      <span className="tabular w-12 text-center text-xs text-muted-foreground">{Math.round(zoom * 100)}%</span>
-      <Button variant="ghost" size="icon-sm" onClick={() => setZoom(Math.min(MAX_ZOOM, zoom * 1.2))} aria-label="Zoom +">
+      <span className="tabular text-muted-foreground w-12 text-center text-xs">
+        {Math.round(zoom * 100)}%
+      </span>
+      <Button
+        variant="ghost"
+        size="icon-sm"
+        onClick={() => setZoom(Math.min(MAX_ZOOM, zoom * 1.2))}
+        aria-label="Zoom +"
+      >
         <ZoomIn />
       </Button>
-      <Button variant="ghost" size="icon-sm" onClick={onFit} aria-label={t("common.view")} title="Fit width">
+      <Button
+        variant="ghost"
+        size="icon-sm"
+        onClick={onFit}
+        aria-label={t("common.view")}
+        title="Fit width"
+      >
         <MoveHorizontal />
       </Button>
     </>
   );
 }
 
-function PdfViewer({ url, toolbarExtras, onError }: { url: string; toolbarExtras: React.ReactNode; onError: () => void }) {
+function PdfViewer({
+  url,
+  toolbarExtras,
+  onError,
+}: {
+  url: string;
+  toolbarExtras: React.ReactNode;
+  onError: () => void;
+}) {
   const { t } = useI18n();
   const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -222,10 +281,16 @@ function PdfViewer({ url, toolbarExtras, onError }: { url: string; toolbarExtras
   return (
     <div className="flex h-full flex-col">
       <Toolbar>
-        <Button variant="ghost" size="icon-sm" disabled={page <= 1} onClick={() => setPage((p) => p - 1)} aria-label={t("common.previous")}>
+        <Button
+          variant="ghost"
+          size="icon-sm"
+          disabled={page <= 1}
+          onClick={() => setPage((p) => p - 1)}
+          aria-label={t("common.previous")}
+        >
           <ChevronLeft />
         </Button>
-        <span className="tabular min-w-20 text-center text-xs text-muted-foreground">
+        <span className="tabular text-muted-foreground min-w-20 text-center text-xs">
           {pageCount ? t("common.page", { page, total: pageCount }) : "…"}
         </span>
         <Button
@@ -237,22 +302,41 @@ function PdfViewer({ url, toolbarExtras, onError }: { url: string; toolbarExtras
         >
           <ChevronRight />
         </Button>
-        <span className="mx-1 h-5 w-px bg-border" aria-hidden />
-        <ZoomControls zoom={effectiveZoom} setZoom={(z) => setZoom(z)} onFit={() => setZoom(null)} />
+        <span className="bg-border mx-1 h-5 w-px" aria-hidden />
+        <ZoomControls
+          zoom={effectiveZoom}
+          setZoom={(z) => setZoom(z)}
+          onFit={() => setZoom(null)}
+        />
         <span className="flex-1" />
-        {rendering ? <Loader2 className="size-4 animate-spin text-muted-foreground" aria-hidden /> : null}
+        {rendering ? (
+          <Loader2 className="text-muted-foreground size-4 animate-spin" aria-hidden />
+        ) : null}
         {toolbarExtras}
       </Toolbar>
-      <div ref={containerRef} className="flex-1 overflow-auto bg-muted/60 p-4">
+      <div ref={containerRef} className="bg-muted/60 flex-1 overflow-auto p-4">
         <div className="relative mx-auto w-fit shadow-md">
-          <canvas ref={canvasRef} className="block bg-white" aria-label={t("review.original")} role="img" />
+          <canvas
+            ref={canvasRef}
+            className="block bg-white"
+            aria-label={t("review.original")}
+            role="img"
+          />
         </div>
       </div>
     </div>
   );
 }
 
-function ImageViewer({ url, toolbarExtras, onError }: { url: string; toolbarExtras: React.ReactNode; onError: () => void }) {
+function ImageViewer({
+  url,
+  toolbarExtras,
+  onError,
+}: {
+  url: string;
+  toolbarExtras: React.ReactNode;
+  onError: () => void;
+}) {
   const { t } = useI18n();
   const [zoom, setZoom] = useState<number | null>(null);
   const [natural, setNatural] = useState<{ w: number; h: number } | null>(null);
@@ -276,15 +360,19 @@ function ImageViewer({ url, toolbarExtras, onError }: { url: string; toolbarExtr
         <span className="flex-1" />
         {toolbarExtras}
       </Toolbar>
-      <div ref={containerRef} className="flex-1 overflow-auto bg-muted/60 p-4">
+      <div ref={containerRef} className="bg-muted/60 flex-1 overflow-auto p-4">
         {/* eslint-disable-next-line @next/next/no-img-element -- short-lived signed URL of a private file */}
         <img
           src={url}
           alt={t("review.original")}
-          onLoad={(e) => setNatural({ w: e.currentTarget.naturalWidth, h: e.currentTarget.naturalHeight })}
+          onLoad={(e) =>
+            setNatural({ w: e.currentTarget.naturalWidth, h: e.currentTarget.naturalHeight })
+          }
           onError={onError}
           className="mx-auto block max-w-none bg-white shadow-md"
-          style={natural ? { width: natural.w * scale, height: natural.h * scale } : { maxWidth: "100%" }}
+          style={
+            natural ? { width: natural.w * scale, height: natural.h * scale } : { maxWidth: "100%" }
+          }
         />
       </div>
     </div>

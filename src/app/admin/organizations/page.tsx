@@ -47,19 +47,28 @@ export default async function AdminOrganizationsPage() {
               {(organizations ?? []).map((o) => (
                 <TR key={o.id} className="relative">
                   <TD>
-                    <Link href={`/admin/organizations/${o.id}`} className="font-medium after:absolute after:inset-0 hover:text-primary">
+                    <Link
+                      href={`/admin/organizations/${o.id}`}
+                      className="hover:text-primary font-medium after:absolute after:inset-0"
+                    >
                       {o.name}
                     </Link>
                   </TD>
-                  <TD className="font-mono text-xs text-muted-foreground">{o.slug}</TD>
+                  <TD className="text-muted-foreground font-mono text-xs">{o.slug}</TD>
                   <TD className="hidden md:table-cell">{o.plan_name ?? "—"}</TD>
                   <TD>
-                    <Badge tone={o.status === "active" ? "success" : "warning"}>{t.dynamic(`admin.status.${o.status}`)}</Badge>
+                    <Badge tone={o.status === "active" ? "success" : "warning"}>
+                      {t.dynamic(`admin.status.${o.status}`)}
+                    </Badge>
                   </TD>
                   <TD className="tabular text-right">{o.member_count}</TD>
                   <TD className="tabular text-right">{o.document_count}</TD>
-                  <TD className="tabular hidden text-right lg:table-cell">{formatBytes(Number(o.storage_bytes), locale)}</TD>
-                  <TD className="tabular hidden text-muted-foreground lg:table-cell">{formatTimestamp(o.created_at, locale)}</TD>
+                  <TD className="tabular hidden text-right lg:table-cell">
+                    {formatBytes(Number(o.storage_bytes), locale)}
+                  </TD>
+                  <TD className="tabular text-muted-foreground hidden lg:table-cell">
+                    {formatTimestamp(o.created_at, locale)}
+                  </TD>
                 </TR>
               ))}
             </TBody>

@@ -4,7 +4,7 @@ import { cn } from "@/lib/utils";
 export function BrandMark({ name, className }: { name: string; className?: string }) {
   return (
     <span className={cn("inline-flex items-center gap-2 font-semibold tracking-tight", className)}>
-      <span className="flex size-7 items-center justify-center rounded-md bg-primary text-primary-foreground">
+      <span className="bg-primary text-primary-foreground flex size-7 items-center justify-center rounded-md">
         <FileStack className="size-4" aria-hidden />
       </span>
       {name}
@@ -23,8 +23,14 @@ export function OrganizationLogo({
 }) {
   const dims = { sm: "size-7 text-xs", md: "size-9 text-sm", lg: "size-12 text-base" }[size];
   if (logoUrl) {
-    // eslint-disable-next-line @next/next/no-img-element -- logos come from the configured Supabase public bucket
-    return <img src={logoUrl} alt="" className={cn(dims, "rounded-md border border-border bg-white object-contain")} />;
+    return (
+      // eslint-disable-next-line @next/next/no-img-element -- logos come from the configured Supabase public bucket
+      <img
+        src={logoUrl}
+        alt=""
+        className={cn(dims, "border-border rounded-md border bg-white object-contain")}
+      />
+    );
   }
   const initials = name
     .split(/\s+/)
@@ -35,7 +41,10 @@ export function OrganizationLogo({
   return (
     <span
       aria-hidden
-      className={cn(dims, "flex items-center justify-center rounded-md bg-primary-soft font-semibold text-primary")}
+      className={cn(
+        dims,
+        "bg-primary-soft text-primary flex items-center justify-center rounded-md font-semibold",
+      )}
     >
       {initials || "?"}
     </span>

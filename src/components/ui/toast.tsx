@@ -30,22 +30,29 @@ function subscribe(listener: () => void) {
 const EMPTY: Toast[] = [];
 
 export function Toaster() {
-  const items = useSyncExternalStore(subscribe, () => toasts, () => EMPTY);
+  const items = useSyncExternalStore(
+    subscribe,
+    () => toasts,
+    () => EMPTY,
+  );
   return (
-    <div className="pointer-events-none fixed bottom-4 right-4 z-50 flex w-[calc(100vw-2rem)] max-w-sm flex-col gap-2" aria-live="polite">
+    <div
+      className="pointer-events-none fixed right-4 bottom-4 z-50 flex w-[calc(100vw-2rem)] max-w-sm flex-col gap-2"
+      aria-live="polite"
+    >
       {items.map((t) => (
         <div
           key={t.id}
           role={t.tone === "error" ? "alert" : "status"}
           className={cn(
-            "pointer-events-auto flex items-start gap-2.5 rounded-lg border bg-surface px-4 py-3 text-sm shadow-lg",
+            "bg-surface pointer-events-auto flex items-start gap-2.5 rounded-lg border px-4 py-3 text-sm shadow-lg",
             t.tone === "error" ? "border-danger/30" : "border-success/30",
           )}
         >
           {t.tone === "error" ? (
-            <XCircle className="mt-0.5 size-4 shrink-0 text-danger" aria-hidden />
+            <XCircle className="text-danger mt-0.5 size-4 shrink-0" aria-hidden />
           ) : (
-            <CheckCircle2 className="mt-0.5 size-4 shrink-0 text-success" aria-hidden />
+            <CheckCircle2 className="text-success mt-0.5 size-4 shrink-0" aria-hidden />
           )}
           <span>{t.message}</span>
         </div>

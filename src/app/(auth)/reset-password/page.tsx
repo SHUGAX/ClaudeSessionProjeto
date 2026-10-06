@@ -21,7 +21,7 @@ export default async function ResetPasswordPage() {
       ) : (
         <div className="flex flex-col gap-4">
           <Callout tone="danger">{t("auth.linkInvalid")}</Callout>
-          <Link href="/forgot-password" className="text-sm text-primary hover:underline">
+          <Link href="/forgot-password" className="text-primary text-sm hover:underline">
             {t("auth.forgotTitle")}
           </Link>
         </div>

@@ -1,4 +1,12 @@
-import { AlertTriangle, BellOff, CalendarClock, Copy, FileWarning, Inbox, type LucideIcon } from "lucide-react";
+import {
+  AlertTriangle,
+  BellOff,
+  CalendarClock,
+  Copy,
+  FileWarning,
+  Inbox,
+  type LucideIcon,
+} from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
@@ -46,12 +54,18 @@ export default async function AlertsPage({
   const [{ data: alerts }, settings] = await Promise.all([
     supabase
       .from("alerts")
-      .select("id, type, status, due_date, created_at, documents(id, document_number, supplier_name, total::text, currency)")
+      .select(
+        "id, type, status, due_date, created_at, documents(id, document_number, supplier_name, total::text, currency)",
+      )
       .eq("organization_id", orgId)
       .in("status", showDismissed ? ["open", "dismissed"] : ["open"])
       .order("created_at", { ascending: false })
       .limit(200),
-    supabase.from("organization_settings").select("timezone").eq("organization_id", orgId).maybeSingle(),
+    supabase
+      .from("organization_settings")
+      .select("timezone")
+      .eq("organization_id", orgId)
+      .maybeSingle(),
   ]);
   const timezone = settings.data?.timezone ?? "Europe/Lisbon";
   const canDismiss = can.editDocuments(ctx.role);
@@ -64,7 +78,7 @@ export default async function AlertsPage({
         actions={
           <Link
             href={tenantPath(slug, showDismissed ? "/alerts" : "/alerts?dismissed=1")}
-            className="text-[13px] text-primary hover:underline"
+            className="text-primary text-[13px] hover:underline"
           >
             {showDismissed ? t("alerts.title") : t("alerts.showDismissed")}
           </Link>
@@ -72,36 +86,64 @@ export default async function AlertsPage({
       />
       <Card>
         {(alerts ?? []).length === 0 ? (
-          <EmptyState icon={BellOff} title={t("alerts.emptyTitle")} description={t("alerts.emptyBody")} />
+          <EmptyState
+            icon={BellOff}
+            title={t("alerts.emptyTitle")}
+            description={t("alerts.emptyBody")}
+          />
         ) : (
-          <ul className="divide-y divide-border">
+          <ul className="divide-border divide-y">
             {(alerts ?? []).map((alert) => {
               const { icon: Icon, tone } = ICONS[alert.type];
               const doc = alert.documents;
               return (
-                <li key={alert.id} className={cn("flex items-center gap-3 px-5 py-3", alert.status === "dismissed" && "opacity-60")}>
-                  <span className={cn("flex size-8 shrink-0 items-center justify-center rounded-md", tone)}>
+                <li
+                  key={alert.id}
+                  className={cn(
+                    "flex items-center gap-3 px-5 py-3",
+                    alert.status === "dismissed" && "opacity-60",
+                  )}
+                >
+                  <span
+                    className={cn(
+                      "flex size-8 shrink-0 items-center justify-center rounded-md",
+                      tone,
+                    )}
+                  >
                     <Icon className="size-4" aria-hidden />
                   </span>
                   <div className="min-w-0 flex-1">
                     <p className="text-sm font-medium">
                       {t.dynamic(`alerts.types.${alert.type}`)}
-                      {alert.status === "dismissed" ? <Badge className="ml-2">{t("alerts.dismiss")}</Badge> : null}
+                      {alert.status === "dismissed" ? (
+                        <Badge className="ml-2">{t("alerts.dismiss")}</Badge>
+                      ) : null}
                     </p>
                     {doc ? (
-                      <Link href={tenantPath(slug, `/documents/${doc.id}`)} className="block truncate text-[13px] text-muted-foreground hover:text-primary">
-                        {[doc.document_number ?? t("documents.unnamed"), doc.supplier_name, formatMoney(doc.total, doc.currency, locale)]
+                      <Link
+                        href={tenantPath(slug, `/documents/${doc.id}`)}
+                        className="text-muted-foreground hover:text-primary block truncate text-[13px]"
+                      >
+                        {[
+                          doc.document_number ?? t("documents.unnamed"),
+                          doc.supplier_name,
+                          formatMoney(doc.total, doc.currency, locale),
+                        ]
                           .filter(Boolean)
                           .join(" · ")}
                       </Link>
                     ) : null}
-                    <p className="text-xs text-muted-foreground">
+                    <p className="text-muted-foreground text-xs">
                       {alert.due_date
-                        ? t(alert.type === "overdue" ? "alerts.dueWas" : "alerts.dueOn", { date: formatBusinessDate(alert.due_date, locale) })
+                        ? t(alert.type === "overdue" ? "alerts.dueWas" : "alerts.dueOn", {
+                            date: formatBusinessDate(alert.due_date, locale),
+                          })
                         : formatTimestamp(alert.created_at, locale, timezone)}
                     </p>
                   </div>
-                  {canDismiss && alert.status === "open" ? <DismissAlertButton alertId={alert.id} /> : null}
+                  {canDismiss && alert.status === "open" ? (
+                    <DismissAlertButton alertId={alert.id} />
+                  ) : null}
                 </li>
               );
             })}

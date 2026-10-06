@@ -9,13 +9,20 @@ import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 export default async function NewOrganizationPage() {
   await requirePlatformAdminPage();
   const { t } = await getI18n();
-  const { data: plans } = await createSupabaseAdminClient().from("plans").select("id, name").eq("active", true).order("name");
+  const { data: plans } = await createSupabaseAdminClient()
+    .from("plans")
+    .select("id, name")
+    .eq("active", true)
+    .order("name");
   return (
     <div className="max-w-3xl">
       <PageHeader title={t("admin.newOrganization")} />
       <Card>
         <CardContent className="py-5">
-          <CreateOrganizationForm plans={plans ?? []} rootDomain={publicEnv().NEXT_PUBLIC_ROOT_DOMAIN} />
+          <CreateOrganizationForm
+            plans={plans ?? []}
+            rootDomain={publicEnv().NEXT_PUBLIC_ROOT_DOMAIN}
+          />
         </CardContent>
       </Card>
     </div>

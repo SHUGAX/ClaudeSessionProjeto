@@ -16,9 +16,11 @@ export function PageHeader({
   return (
     <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
       <div className="min-w-0">
-        {breadcrumb ? <div className="mb-1.5 text-[13px] text-muted-foreground">{breadcrumb}</div> : null}
-        <h1 className="truncate text-xl font-semibold tracking-tight text-foreground">{title}</h1>
-        {description ? <p className="mt-1 text-sm text-muted-foreground">{description}</p> : null}
+        {breadcrumb ? (
+          <div className="text-muted-foreground mb-1.5 text-[13px]">{breadcrumb}</div>
+        ) : null}
+        <h1 className="text-foreground truncate text-xl font-semibold tracking-tight">{title}</h1>
+        {description ? <p className="text-muted-foreground mt-1 text-sm">{description}</p> : null}
       </div>
       {actions ? <div className="flex flex-wrap items-center gap-2">{actions}</div> : null}
     </div>
@@ -39,28 +41,36 @@ export function EmptyState({
   className?: string;
 }) {
   return (
-    <div className={cn("flex flex-col items-center justify-center px-6 py-14 text-center", className)}>
+    <div
+      className={cn("flex flex-col items-center justify-center px-6 py-14 text-center", className)}
+    >
       {Icon ? (
-        <div className="mb-3 flex size-10 items-center justify-center rounded-full bg-muted text-muted-foreground">
+        <div className="bg-muted text-muted-foreground mb-3 flex size-10 items-center justify-center rounded-full">
           <Icon className="size-5" aria-hidden />
         </div>
       ) : null}
-      <p className="text-sm font-medium text-foreground">{title}</p>
-      {description ? <p className="mt-1 max-w-sm text-[13px] text-muted-foreground">{description}</p> : null}
+      <p className="text-foreground text-sm font-medium">{title}</p>
+      {description ? (
+        <p className="text-muted-foreground mt-1 max-w-sm text-[13px]">{description}</p>
+      ) : null}
       {action ? <div className="mt-4">{action}</div> : null}
     </div>
   );
 }
 
 export function Skeleton({ className }: { className?: string }) {
-  return <div className={cn("animate-pulse rounded-md bg-muted", className)} aria-hidden />;
+  return <div className={cn("bg-muted animate-pulse rounded-md", className)} aria-hidden />;
 }
 
 export function Spinner({ className, label }: { className?: string; label?: string }) {
   return (
     <span role="status" className="inline-flex items-center gap-2">
-      <Loader2 className={cn("size-4 animate-spin text-muted-foreground", className)} aria-hidden />
-      {label ? <span className="text-sm text-muted-foreground">{label}</span> : <span className="sr-only">…</span>}
+      <Loader2 className={cn("text-muted-foreground size-4 animate-spin", className)} aria-hidden />
+      {label ? (
+        <span className="text-muted-foreground text-sm">{label}</span>
+      ) : (
+        <span className="sr-only">…</span>
+      )}
     </span>
   );
 }
@@ -87,11 +97,11 @@ export function StatCard({
     success: "text-success bg-success-soft",
   }[tone];
   const content = (
-    <div className="flex h-full items-start justify-between gap-3 rounded-lg border border-border bg-surface p-4 shadow-[var(--shadow-card)] transition-colors hover:border-input">
+    <div className="border-border bg-surface hover:border-input flex h-full items-start justify-between gap-3 rounded-lg border p-4 shadow-[var(--shadow-card)] transition-colors">
       <div className="min-w-0">
-        <p className="text-[13px] text-muted-foreground">{label}</p>
+        <p className="text-muted-foreground text-[13px]">{label}</p>
         <p className="tabular mt-1.5 truncate text-xl font-semibold tracking-tight">{value}</p>
-        {hint ? <p className="mt-1 text-xs text-muted-foreground">{hint}</p> : null}
+        {hint ? <p className="text-muted-foreground mt-1 text-xs">{hint}</p> : null}
       </div>
       {Icon ? (
         <div className={cn("flex size-8 shrink-0 items-center justify-center rounded-md", toneCls)}>

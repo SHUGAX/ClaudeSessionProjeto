@@ -3,7 +3,12 @@ import { z } from "zod";
 import { addDaysIso, isValidIsoDate, todayIso } from "@/lib/dates";
 import { parseAmount } from "@/lib/money";
 import type { UserSupabaseClient } from "@/lib/supabase/server";
-import { DOCUMENT_STATUSES, DOCUMENT_TYPES, type DocumentStatus, type DocumentType } from "@/lib/supabase/types";
+import {
+  DOCUMENT_STATUSES,
+  DOCUMENT_TYPES,
+  type DocumentStatus,
+  type DocumentType,
+} from "@/lib/supabase/types";
 import { normalizeTaxId } from "@/lib/validation/tax-id";
 
 export const PAGE_SIZE = 25;
@@ -35,8 +40,14 @@ export function parseDocumentFilters(params: Record<string, string | string[] | 
   const due = get("due");
   return {
     q: get("q")?.slice(0, 100),
-    status: status && (DOCUMENT_STATUSES as readonly string[]).includes(status) ? (status as DocumentStatus) : undefined,
-    type: type && (DOCUMENT_TYPES as readonly string[]).includes(type) ? (type as DocumentType) : undefined,
+    status:
+      status && (DOCUMENT_STATUSES as readonly string[]).includes(status)
+        ? (status as DocumentStatus)
+        : undefined,
+    type:
+      type && (DOCUMENT_TYPES as readonly string[]).includes(type)
+        ? (type as DocumentType)
+        : undefined,
     supplier: uuid.safeParse(get("supplier")).success ? get("supplier") : undefined,
     category: uuid.safeParse(get("category")).success ? get("category") : undefined,
     from: isoDate.safeParse(get("from")).success ? get("from") : undefined,
@@ -92,7 +103,10 @@ export async function listDocuments(
     const today = todayIso(timezone);
     query = query.is("paid_at", null).not("due_date", "is", null);
     if (filters.due === "overdue") query = query.lt("due_date", today);
-    else query = query.gte("due_date", today).lte("due_date", addDaysIso(today, filters.due === "next7" ? 7 : 30));
+    else
+      query = query
+        .gte("due_date", today)
+        .lte("due_date", addDaysIso(today, filters.due === "next7" ? 7 : 30));
   }
 
   const term = filters.q ? sanitizeSearchTerm(filters.q) : "";
@@ -105,12 +119,15 @@ export async function listDocuments(
       `original_filename.ilike.${like}`,
     ];
     const taxId = normalizeTaxId(term);
-    if (taxId && /^[A-Z0-9]{5,}$/.test(taxId)) conditions.push(`supplier_tax_id_normalized.eq."${taxId}"`);
+    if (taxId && /^[A-Z0-9]{5,}$/.test(taxId))
+      conditions.push(`supplier_tax_id_normalized.eq."${taxId}"`);
     query = query.or(conditions.join(","));
   }
 
   const sort = SORT_COLUMNS[filters.sort];
-  query = query.order(sort.column, { ascending: sort.ascending, nullsFirst: false }).order("id", { ascending: true });
+  query = query
+    .order(sort.column, { ascending: sort.ascending, nullsFirst: false })
+    .order("id", { ascending: true });
   const from = (filters.page - 1) * PAGE_SIZE;
   const { data, count, error } = await query.range(from, from + PAGE_SIZE - 1);
   if (error) throw error;

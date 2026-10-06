@@ -14,7 +14,12 @@ export function LanguageSwitcher({ className }: { className?: string }) {
   const [pending, startTransition] = useTransition();
 
   return (
-    <label className={cn("inline-flex items-center gap-1.5 text-[13px] text-muted-foreground", className)}>
+    <label
+      className={cn(
+        "text-muted-foreground inline-flex items-center gap-1.5 text-[13px]",
+        className,
+      )}
+    >
       <Languages className="size-4" aria-hidden />
       <span className="sr-only">{t("common.language")}</span>
       <select
@@ -27,7 +32,7 @@ export function LanguageSwitcher({ className }: { className?: string }) {
             router.refresh();
           });
         }}
-        className="cursor-pointer rounded bg-transparent py-1 pr-1 text-[13px] text-muted-foreground hover:text-foreground focus-visible:outline-2"
+        className="text-muted-foreground hover:text-foreground cursor-pointer rounded bg-transparent py-1 pr-1 text-[13px] focus-visible:outline-2"
       >
         {LOCALES.map((l) => (
           <option key={l} value={l}>

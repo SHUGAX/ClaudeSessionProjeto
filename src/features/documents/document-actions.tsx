@@ -1,6 +1,14 @@
 "use client";
 
-import { Archive, ArchiveRestore, BadgeCheck, CircleDollarSign, RotateCcw, Sparkles, Undo2 } from "lucide-react";
+import {
+  Archive,
+  ArchiveRestore,
+  BadgeCheck,
+  CircleDollarSign,
+  RotateCcw,
+  Sparkles,
+  Undo2,
+} from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { Button } from "@/components/ui/button";
@@ -45,9 +53,14 @@ export function DocumentActions({
     run(async () => {
       try {
         const outcome = await processDocument(documentId);
-        return outcome.status === "failed" ? { ok: false, error: "review.failedTitle" } : { ok: true };
+        return outcome.status === "failed"
+          ? { ok: false, error: "review.failedTitle" }
+          : { ok: true };
       } catch (error) {
-        return { ok: false, error: `errors.${error instanceof ApiError ? error.code : "internal"}` };
+        return {
+          ok: false,
+          error: `errors.${error instanceof ApiError ? error.code : "internal"}`,
+        };
       }
     });
 
@@ -56,7 +69,12 @@ export function DocumentActions({
   return (
     <div className="flex flex-wrap items-center gap-2">
       {canRetry ? (
-        <Button variant="secondary" size="sm" disabled={pending} onClick={() => (status === "review_required" ? setConfirm("retry") : retry())}>
+        <Button
+          variant="secondary"
+          size="sm"
+          disabled={pending}
+          onClick={() => (status === "review_required" ? setConfirm("retry") : retry())}
+        >
           <Sparkles /> {pending ? t("review.retrying") : t("review.retryExtraction")}
         </Button>
       ) : null}
@@ -66,17 +84,30 @@ export function DocumentActions({
             variant="secondary"
             size="sm"
             disabled={pending}
-            onClick={() => run(() => documentStateAction(documentId, paid ? "mark_unpaid" : "mark_paid"))}
+            onClick={() =>
+              run(() => documentStateAction(documentId, paid ? "mark_unpaid" : "mark_paid"))
+            }
           >
-            {paid ? <Undo2 /> : <CircleDollarSign />} {paid ? t("review.markUnpaid") : t("review.markPaid")}
+            {paid ? <Undo2 /> : <CircleDollarSign />}{" "}
+            {paid ? t("review.markUnpaid") : t("review.markPaid")}
           </Button>
-          <Button variant="secondary" size="sm" disabled={pending} onClick={() => run(() => documentStateAction(documentId, "reopen"))}>
+          <Button
+            variant="secondary"
+            size="sm"
+            disabled={pending}
+            onClick={() => run(() => documentStateAction(documentId, "reopen"))}
+          >
             <RotateCcw /> {t("review.reopen")}
           </Button>
         </>
       ) : null}
       {canArchive && status === "archived" ? (
-        <Button variant="secondary" size="sm" disabled={pending} onClick={() => run(() => documentStateAction(documentId, "unarchive"))}>
+        <Button
+          variant="secondary"
+          size="sm"
+          disabled={pending}
+          onClick={() => run(() => documentStateAction(documentId, "unarchive"))}
+        >
           <ArchiveRestore /> {t("review.unarchive")}
         </Button>
       ) : null}
@@ -89,7 +120,9 @@ export function DocumentActions({
       <Dialog open={confirm !== null} onOpenChange={(open) => !open && setConfirm(null)}>
         <DialogContent
           title={confirm === "archive" ? t("review.archive") : t("review.retryExtraction")}
-          description={confirm === "archive" ? t("review.archiveConfirm") : t("review.retryConfirm")}
+          description={
+            confirm === "archive" ? t("review.archiveConfirm") : t("review.retryConfirm")
+          }
           closeLabel={t("common.close")}
         >
           <div className="flex justify-end gap-2">

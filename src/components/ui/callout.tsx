@@ -29,9 +29,11 @@ export function Callout({
       className={cn("flex gap-3 rounded-md border px-3.5 py-3 text-[13px]", cls, className)}
     >
       <Icon className="mt-0.5 size-4 shrink-0" aria-hidden />
-      <div className="min-w-0 flex-1 text-foreground">
+      <div className="text-foreground min-w-0 flex-1">
         {title ? <p className="font-medium">{title}</p> : null}
-        {children ? <div className={cn("text-foreground/80", title && "mt-0.5")}>{children}</div> : null}
+        {children ? (
+          <div className={cn("text-foreground/80", title && "mt-0.5")}>{children}</div>
+        ) : null}
       </div>
       {action ? <div className="shrink-0">{action}</div> : null}
     </div>

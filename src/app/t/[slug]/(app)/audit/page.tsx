@@ -14,7 +14,15 @@ import { requireTenantContext } from "@/lib/tenancy/context";
 import { tenantPath } from "@/lib/tenancy/urls";
 
 const PAGE = 50;
-const ENTITY_TYPES = ["document", "supplier", "category", "member", "invitation", "settings", "organization"] as const;
+const ENTITY_TYPES = [
+  "document",
+  "supplier",
+  "category",
+  "member",
+  "invitation",
+  "settings",
+  "organization",
+] as const;
 
 export async function generateMetadata(): Promise<Metadata> {
   const { t } = await getI18n();
@@ -25,7 +33,10 @@ function summarize(values: unknown): string {
   if (!values || typeof values !== "object") return "";
   return Object.entries(values as Record<string, unknown>)
     .slice(0, 4)
-    .map(([k, v]) => `${k}: ${v == null ? "∅" : typeof v === "object" ? JSON.stringify(v) : String(v)}`)
+    .map(
+      ([k, v]) =>
+        `${k}: ${v == null ? "∅" : typeof v === "object" ? JSON.stringify(v) : String(v)}`,
+    )
     .join(" · ")
     .slice(0, 200);
 }
@@ -48,7 +59,10 @@ export default async function AuditPage({
 
   let query = supabase
     .from("audit_logs")
-    .select("id, action, entity_type, entity_id, actor_type, new_values, created_at, profiles(full_name, email)", { count: "exact" })
+    .select(
+      "id, action, entity_type, entity_id, actor_type, new_values, created_at, profiles(full_name, email)",
+      { count: "exact" },
+    )
     .eq("organization_id", ctx.organization.id)
     .order("created_at", { ascending: false });
   if (entity) query = query.eq("entity_type", entity);
@@ -60,14 +74,23 @@ export default async function AuditPage({
     <>
       <PageHeader title={t("audit.title")} description={t("audit.subtitle")} />
       <div className="mb-4 flex flex-wrap gap-2 text-[13px]">
-        <Link href={base} className={!entity ? "font-semibold text-primary" : "text-muted-foreground hover:text-foreground"}>
+        <Link
+          href={base}
+          className={
+            !entity ? "text-primary font-semibold" : "text-muted-foreground hover:text-foreground"
+          }
+        >
           {t("common.all")}
         </Link>
         {ENTITY_TYPES.map((e) => (
           <Link
             key={e}
             href={`${base}?entity=${e}`}
-            className={entity === e ? "font-semibold text-primary" : "text-muted-foreground hover:text-foreground"}
+            className={
+              entity === e
+                ? "text-primary font-semibold"
+                : "text-muted-foreground hover:text-foreground"
+            }
           >
             {e}
           </Link>
@@ -90,20 +113,27 @@ export default async function AuditPage({
               <TBody>
                 {(logs ?? []).map((log) => (
                   <TR key={log.id}>
-                    <TD className="tabular whitespace-nowrap text-muted-foreground">{formatTimestamp(log.created_at, locale)}</TD>
+                    <TD className="tabular text-muted-foreground whitespace-nowrap">
+                      {formatTimestamp(log.created_at, locale)}
+                    </TD>
                     <TD className="max-w-[12rem] truncate">
                       {log.profiles?.full_name ?? log.profiles?.email ?? t("audit.system")}
                     </TD>
                     <TD>
                       {log.entity_type === "document" && log.entity_id ? (
-                        <Link href={tenantPath(slug, `/documents/${log.entity_id}`)} className="hover:text-primary">
+                        <Link
+                          href={tenantPath(slug, `/documents/${log.entity_id}`)}
+                          className="hover:text-primary"
+                        >
                           {t.dynamic(`audit.actions.${log.action.replace(".", "_")}`, log.action)}
                         </Link>
                       ) : (
                         t.dynamic(`audit.actions.${log.action.replace(".", "_")}`, log.action)
                       )}
                     </TD>
-                    <TD className="hidden max-w-md truncate text-xs text-muted-foreground lg:table-cell">{summarize(log.new_values)}</TD>
+                    <TD className="text-muted-foreground hidden max-w-md truncate text-xs lg:table-cell">
+                      {summarize(log.new_values)}
+                    </TD>
                   </TR>
                 ))}
               </TBody>
@@ -111,8 +141,14 @@ export default async function AuditPage({
             <Pagination
               page={page}
               pageCount={pageCount}
-              hrefFor={(p) => `${base}?${new URLSearchParams({ ...(entity ? { entity } : {}), page: String(p) })}`}
-              labels={{ previous: t("common.previous"), next: t("common.next"), page: t("common.page", { page, total: pageCount }) }}
+              hrefFor={(p) =>
+                `${base}?${new URLSearchParams({ ...(entity ? { entity } : {}), page: String(p) })}`
+              }
+              labels={{
+                previous: t("common.previous"),
+                next: t("common.next"),
+                page: t("common.page", { page, total: pageCount }),
+              }}
             />
           </>
         )}

@@ -4,7 +4,10 @@ import { cn } from "@/lib/utils";
 export function Table({ className, ...props }: HTMLAttributes<HTMLTableElement>) {
   return (
     <div className="w-full overflow-x-auto">
-      <table className={cn("w-full caption-bottom border-collapse text-sm", className)} {...props} />
+      <table
+        className={cn("w-full caption-bottom border-collapse text-sm", className)}
+        {...props}
+      />
     </div>
   );
 }
@@ -14,11 +17,11 @@ export function THead({ className, ...props }: HTMLAttributes<HTMLTableSectionEl
 }
 
 export function TBody({ className, ...props }: HTMLAttributes<HTMLTableSectionElement>) {
-  return <tbody className={cn("divide-y divide-border", className)} {...props} />;
+  return <tbody className={cn("divide-border divide-y", className)} {...props} />;
 }
 
 export function TR({ className, ...props }: HTMLAttributes<HTMLTableRowElement>) {
-  return <tr className={cn("transition-colors hover:bg-muted/40", className)} {...props} />;
+  return <tr className={cn("hover:bg-muted/40 transition-colors", className)} {...props} />;
 }
 
 export function TH({ className, ...props }: ThHTMLAttributes<HTMLTableCellElement>) {
@@ -26,7 +29,7 @@ export function TH({ className, ...props }: ThHTMLAttributes<HTMLTableCellElemen
     <th
       scope="col"
       className={cn(
-        "h-9 whitespace-nowrap border-b border-border px-4 text-left align-middle text-xs font-medium text-muted-foreground",
+        "border-border text-muted-foreground h-9 border-b px-4 text-left align-middle text-xs font-medium whitespace-nowrap",
         className,
       )}
       {...props}

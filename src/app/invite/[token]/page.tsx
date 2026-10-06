@@ -4,7 +4,10 @@ import { AuthShell } from "@/components/layout/auth-shell";
 import { SignOutButton } from "@/components/layout/sign-out-button";
 import { buttonVariants } from "@/components/ui/button";
 import { Callout } from "@/components/ui/callout";
-import { AcceptInvitationExistingUserForm, AcceptInvitationNewUserForm } from "@/features/auth/invite-forms";
+import {
+  AcceptInvitationExistingUserForm,
+  AcceptInvitationNewUserForm,
+} from "@/features/auth/invite-forms";
 import { getSessionUser } from "@/lib/auth/session";
 import { getI18n } from "@/lib/i18n/server";
 import { findValidInvitation } from "@/lib/invitations";
@@ -25,7 +28,7 @@ export default async function InvitePage({ params }: { params: Promise<{ token: 
       <AuthShell title={t("invite.title")}>
         <div className="flex flex-col gap-4">
           <Callout tone="danger">{t("invite.invalid")}</Callout>
-          <Link href="/login" className="text-sm text-primary hover:underline">
+          <Link href="/login" className="text-primary text-sm hover:underline">
             {t("auth.backToLogin")}
           </Link>
         </div>
@@ -44,7 +47,9 @@ export default async function InvitePage({ params }: { params: Promise<{ token: 
       return (
         <AuthShell title={t("invite.title")} subtitle={subtitle}>
           <div className="flex flex-col gap-4">
-            <Callout tone="warning">{t("invite.wrongAccount", { email: invitation.email })}</Callout>
+            <Callout tone="warning">
+              {t("invite.wrongAccount", { email: invitation.email })}
+            </Callout>
             <SignOutButton label={t("auth.useAnotherAccount")} />
           </div>
         </AuthShell>
@@ -58,7 +63,11 @@ export default async function InvitePage({ params }: { params: Promise<{ token: 
   }
 
   const admin = createSupabaseAdminClient();
-  const { data: existing } = await admin.from("profiles").select("id").eq("email", invitation.email).maybeSingle();
+  const { data: existing } = await admin
+    .from("profiles")
+    .select("id")
+    .eq("email", invitation.email)
+    .maybeSingle();
   if (existing) {
     return (
       <AuthShell title={t("invite.title")} subtitle={subtitle}>

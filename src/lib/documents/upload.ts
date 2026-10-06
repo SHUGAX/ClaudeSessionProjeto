@@ -38,13 +38,20 @@ export async function createUploadIntent(
   input: { filename: string; size: number; documentType: DocumentType },
 ): Promise<UploadIntent> {
   if (!can.uploadDocuments(ctx.role)) throw new AppError("forbidden");
-  if (!(await rateLimit(`upload:${ctx.user.id}`, RATE_LIMITS.uploadIntent.max, RATE_LIMITS.uploadIntent.windowSeconds))) {
+  if (
+    !(await rateLimit(
+      `upload:${ctx.user.id}`,
+      RATE_LIMITS.uploadIntent.max,
+      RATE_LIMITS.uploadIntent.windowSeconds,
+    ))
+  ) {
     throw new AppError("rate_limited");
   }
 
   const claimedMime = mimeFromExtension(input.filename);
   if (!claimedMime) throw new AppError("unsupported_file");
-  if (!Number.isFinite(input.size) || input.size <= 0) throw new AppError("invalid_input", "empty_file");
+  if (!Number.isFinite(input.size) || input.size <= 0)
+    throw new AppError("invalid_input", "empty_file");
   if (input.size > MAX_UPLOAD_BYTES) throw new AppError("file_too_large");
 
   const admin = createSupabaseAdminClient();
@@ -53,7 +60,10 @@ export async function createUploadIntent(
   if (l?.max_documents_per_month != null && l.documents_this_month >= l.max_documents_per_month) {
     throw new AppError("limit_reached", "documents_limit");
   }
-  if (l?.max_storage_bytes != null && Number(l.storage_bytes) + input.size > Number(l.max_storage_bytes)) {
+  if (
+    l?.max_storage_bytes != null &&
+    Number(l.storage_bytes) + input.size > Number(l.max_storage_bytes)
+  ) {
     throw new AppError("limit_reached", "storage_limit");
   }
 
@@ -99,12 +109,18 @@ export async function createUploadIntent(
  */
 export async function finalizeUpload(documentId: string) {
   const { doc, user } = await loadAuthorizedDocument(documentId, "uploadDocuments");
-  if (doc.status !== "uploading") return { documentId, status: doc.status, duplicateOf: null as string | null };
+  if (doc.status !== "uploading")
+    return { documentId, status: doc.status, duplicateOf: null as string | null };
 
   const admin = createSupabaseAdminClient();
   const discard = async () => {
     await admin.storage.from("documents").remove([doc.storage_path]);
-    await admin.from("documents").delete().eq("id", doc.id).eq("organization_id", doc.organization_id).eq("status", "uploading");
+    await admin
+      .from("documents")
+      .delete()
+      .eq("id", doc.id)
+      .eq("organization_id", doc.organization_id)
+      .eq("status", "uploading");
   };
 
   const { data: blob, error } = await admin.storage.from("documents").download(doc.storage_path);
@@ -160,7 +176,11 @@ export async function finalizeUpload(documentId: string) {
     action: "document.uploaded",
     entityType: "document",
     entityId: doc.id,
-    newValues: { original_filename: doc.original_filename, mime_type: realMime, file_size: bytes.byteLength },
+    newValues: {
+      original_filename: doc.original_filename,
+      mime_type: realMime,
+      file_size: bytes.byteLength,
+    },
     metadata: { sha256, exactDuplicateOf: identical?.id ?? null },
   });
 

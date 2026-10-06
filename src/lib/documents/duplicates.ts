@@ -29,7 +29,11 @@ export interface DuplicateMatch {
   kind: DuplicateKind;
 }
 
-const STRENGTH: Record<DuplicateKind, number> = { exact_file: 3, same_number: 2, same_date_total: 1 };
+const STRENGTH: Record<DuplicateKind, number> = {
+  exact_file: 3,
+  same_number: 2,
+  same_date_total: 1,
+};
 
 function sameSupplier(a: DuplicateSubject, b: DuplicateSubject): boolean {
   if (a.supplierId && b.supplierId && a.supplierId === b.supplierId) return true;
@@ -55,7 +59,10 @@ function sameAmount(a: string | null, b: string | null): boolean {
  * Duplicates are NEVER merged or deleted automatically; they are flagged for
  * human inspection. Archived documents are ignored.
  */
-export function findDuplicateMatches(subject: DuplicateSubject, candidates: DuplicateCandidate[]): DuplicateMatch[] {
+export function findDuplicateMatches(
+  subject: DuplicateSubject,
+  candidates: DuplicateCandidate[],
+): DuplicateMatch[] {
   const matches = new Map<string, DuplicateKind>();
   const subjectNumber = normalizeDocumentNumber(subject.documentNumber);
 

@@ -52,18 +52,25 @@ export default async function DashboardPage({ params }: { params: Promise<{ slug
     supabase.rpc("dashboard_metrics", { p_org: orgId }),
     supabase
       .from("documents")
-      .select("id, document_number, original_filename, supplier_name, issue_date, total::text, currency, status")
+      .select(
+        "id, document_number, original_filename, supplier_name, issue_date, total::text, currency, status",
+      )
       .eq("organization_id", orgId)
       .neq("status", "uploading")
       .order("created_at", { ascending: false })
       .limit(6),
-    supabase.from("documents").select("id", { head: true, count: "exact" }).eq("organization_id", orgId),
+    supabase
+      .from("documents")
+      .select("id", { head: true, count: "exact" })
+      .eq("organization_id", orgId),
   ]);
 
-  if (metricsResult.error) logger.error("dashboard_metrics_failed", { code: metricsResult.error.code });
+  if (metricsResult.error)
+    logger.error("dashboard_metrics_failed", { code: metricsResult.error.code });
   const m = metricsResult.data as unknown as Metrics | null;
   const currency = m?.currency ?? "EUR";
-  const money = (v: string | number | undefined) => formatMoney(v == null ? null : String(v), currency, locale);
+  const money = (v: string | number | undefined) =>
+    formatMoney(v == null ? null : String(v), currency, locale);
 
   const header = (
     <PageHeader
@@ -114,8 +121,17 @@ export default async function DashboardPage({ params }: { params: Promise<{ slug
     <>
       {header}
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-6">
-        <StatCard label={t("dashboard.documentsThisMonth")} value={m.documents_this_month} icon={FileText} href={href("/documents")} />
-        <StatCard label={t("dashboard.amountThisMonth")} value={money(m.amount_this_month)} icon={Wallet} />
+        <StatCard
+          label={t("dashboard.documentsThisMonth")}
+          value={m.documents_this_month}
+          icon={FileText}
+          href={href("/documents")}
+        />
+        <StatCard
+          label={t("dashboard.amountThisMonth")}
+          value={money(m.amount_this_month)}
+          icon={Wallet}
+        />
         <StatCard
           label={t("dashboard.requiringReview")}
           value={m.requiring_review}
@@ -146,7 +162,9 @@ export default async function DashboardPage({ params }: { params: Promise<{ slug
           href={href("/documents?due=overdue&status=validated")}
         />
       </div>
-      <p className="mt-2 text-xs text-muted-foreground">{t("dashboard.validatedOnly", { currency })}</p>
+      <p className="text-muted-foreground mt-2 text-xs">
+        {t("dashboard.validatedOnly", { currency })}
+      </p>
 
       <div className="mt-6 grid grid-cols-1 items-start gap-5 xl:grid-cols-3">
         <Card className="xl:col-span-2">
@@ -162,18 +180,25 @@ export default async function DashboardPage({ params }: { params: Promise<{ slug
         </Card>
         <Card>
           <CardHeader title={t("dashboard.recentDocuments")} />
-          <ul className="divide-y divide-border">
+          <ul className="divide-border divide-y">
             {(recent.data ?? []).map((d) => (
               <li key={d.id}>
-                <Link href={href(`/documents/${d.id}`)} className="flex items-center gap-3 px-5 py-2.5 hover:bg-muted/50">
+                <Link
+                  href={href(`/documents/${d.id}`)}
+                  className="hover:bg-muted/50 flex items-center gap-3 px-5 py-2.5"
+                >
                   <div className="min-w-0 flex-1">
-                    <p className="truncate text-[13px] font-medium">{d.document_number ?? d.original_filename}</p>
-                    <p className="truncate text-xs text-muted-foreground">
+                    <p className="truncate text-[13px] font-medium">
+                      {d.document_number ?? d.original_filename}
+                    </p>
+                    <p className="text-muted-foreground truncate text-xs">
                       {d.supplier_name ?? "—"} · {formatBusinessDate(d.issue_date, locale)}
                     </p>
                   </div>
                   <div className="flex flex-col items-end gap-1">
-                    <span className="tabular text-[13px]">{formatMoney(d.total, d.currency, locale)}</span>
+                    <span className="tabular text-[13px]">
+                      {formatMoney(d.total, d.currency, locale)}
+                    </span>
                     <DocumentStatusBadge status={d.status} />
                   </div>
                 </Link>

@@ -9,12 +9,12 @@ API call or Data API request they craft.
 ## Layers of tenant isolation
 
 1. **Database (primary)** — Row Level Security on every tenant table.
-   Visibility requires an *active membership* of `auth.uid()` in an *active*
+   Visibility requires an _active membership_ of `auth.uid()` in an _active_
    organization (`public.user_org_ids()`); writes additionally check the role.
    The tenant slug is never used by policies.
 2. **Storage** — private `documents` bucket; the read policy derives the
    organization from the object path (`organizations/{org}/…`) and applies the
-   same membership check. Signed URLs are created with the *user's* session
+   same membership check. Signed URLs are created with the _user's_ session
    (so storage RLS is enforced) and live 120 s. End users cannot write, move or
    delete originals.
 3. **Application** — `resolveTenant(slug)` verifies authentication, membership
@@ -31,18 +31,18 @@ API call or Data API request they craft.
    column-level privileges it needs; privileged functions are executable only
    by the service role.
 
-The subdomain only *identifies* a tenant; it never grants access.
+The subdomain only _identifies_ a tenant; it never grants access.
 
 ## Roles
 
-| Capability | viewer | member | manager | admin | owner |
-|---|:-:|:-:|:-:|:-:|:-:|
-| View documents, suppliers, categories, alerts | ✓ | ✓ | ✓ | ✓ | ✓ |
-| Upload, review, validate, archive documents | | ✓ | ✓ | ✓ | ✓ |
-| Create suppliers (during validation) | | ✓ | ✓ | ✓ | ✓ |
-| Edit suppliers, manage categories | | | ✓ | ✓ | ✓ |
-| Manage users/invitations, settings, audit log, usage | | | | ✓ | ✓ |
-| Manage owners | | | | | ✓ |
+| Capability                                           | viewer | member | manager | admin | owner |
+| ---------------------------------------------------- | :----: | :----: | :-----: | :---: | :---: |
+| View documents, suppliers, categories, alerts        |   ✓    |   ✓    |    ✓    |   ✓   |   ✓   |
+| Upload, review, validate, archive documents          |        |   ✓    |    ✓    |   ✓   |   ✓   |
+| Create suppliers (during validation)                 |        |   ✓    |    ✓    |   ✓   |   ✓   |
+| Edit suppliers, manage categories                    |        |        |    ✓    |   ✓   |   ✓   |
+| Manage users/invitations, settings, audit log, usage |        |        |         |   ✓   |   ✓   |
+| Manage owners                                        |        |        |         |       |   ✓   |
 
 Helpers: `src/lib/auth/permissions.ts` (mirrored by RLS policies).
 SaaS super admins (`platform_admins`) use a separate area and **have no
@@ -57,22 +57,22 @@ refresh, onboarding/invitations, signed upload URLs, logo uploads.
 
 ## Web security controls
 
-| Risk | Control |
-|---|---|
-| XSS | React escaping; no `dangerouslySetInnerHTML`; CSP (`default-src 'self'`, `object-src 'none'`, `frame-ancestors 'none'`); SVG logos rejected; email templates escape HTML |
-| CSRF | SameSite=Lax cookies; Server Actions origin check; route handlers require same-origin `Origin`; logout is POST-only |
-| Open redirect | `safeRedirectTarget` allows relative paths or root-domain hosts only |
-| IDOR / broken tenant authorization | RLS + record-derived organization + composite FKs |
-| Mass assignment | Zod schemas, column grants, guard triggers |
-| SQL injection | parameterized PostgREST queries; search terms sanitized before `or()` filters; no LLM-generated SQL |
-| File upload attacks | extension pre-check, magic-byte verification server-side, size limits (bucket + server), fixed storage keys, originals rendered by pdf.js on a canvas (never as HTML), served from the storage domain |
-| MIME spoofing | browser MIME ignored; detected type stored |
-| SSRF | no user-supplied URLs are fetched |
-| Brute force | Postgres rate limiting on login, password reset, invitations, uploads, AI processing; Supabase Auth limits |
-| Session | Supabase SSR cookies refreshed in the proxy; `getUser()` validation server-side |
-| Secret leakage | env validated with Zod (names only in errors); logger redacts sensitive keys; `.env*` git-ignored |
-| AI prompt injection | prompt instructs to ignore instructions in documents; output schema-constrained and Zod-validated; AI cannot trigger actions |
-| Invitation tokens | 256-bit random, only SHA-256 stored, single use, 7-day expiry, links never placed in URLs of admin pages |
+| Risk                               | Control                                                                                                                                                                                               |
+| ---------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| XSS                                | React escaping; no `dangerouslySetInnerHTML`; CSP (`default-src 'self'`, `object-src 'none'`, `frame-ancestors 'none'`); SVG logos rejected; email templates escape HTML                              |
+| CSRF                               | SameSite=Lax cookies; Server Actions origin check; route handlers require same-origin `Origin`; logout is POST-only                                                                                   |
+| Open redirect                      | `safeRedirectTarget` allows relative paths or root-domain hosts only                                                                                                                                  |
+| IDOR / broken tenant authorization | RLS + record-derived organization + composite FKs                                                                                                                                                     |
+| Mass assignment                    | Zod schemas, column grants, guard triggers                                                                                                                                                            |
+| SQL injection                      | parameterized PostgREST queries; search terms sanitized before `or()` filters; no LLM-generated SQL                                                                                                   |
+| File upload attacks                | extension pre-check, magic-byte verification server-side, size limits (bucket + server), fixed storage keys, originals rendered by pdf.js on a canvas (never as HTML), served from the storage domain |
+| MIME spoofing                      | browser MIME ignored; detected type stored                                                                                                                                                            |
+| SSRF                               | no user-supplied URLs are fetched                                                                                                                                                                     |
+| Brute force                        | Postgres rate limiting on login, password reset, invitations, uploads, AI processing; Supabase Auth limits                                                                                            |
+| Session                            | Supabase SSR cookies refreshed in the proxy; `getUser()` validation server-side                                                                                                                       |
+| Secret leakage                     | env validated with Zod (names only in errors); logger redacts sensitive keys; `.env*` git-ignored                                                                                                     |
+| AI prompt injection                | prompt instructs to ignore instructions in documents; output schema-constrained and Zod-validated; AI cannot trigger actions                                                                          |
+| Invitation tokens                  | 256-bit random, only SHA-256 stored, single use, 7-day expiry, links never placed in URLs of admin pages                                                                                              |
 
 ## Verification
 

@@ -6,23 +6,23 @@
   detects duplicates, authorizes and computes.
 - The model must return `null` instead of inventing values.
 - AI output is **untrusted input**: schema-constrained, Zod-validated,
-  normalised, then shown as a *suggestion* until a human validates it.
+  normalised, then shown as a _suggestion_ until a human validates it.
 - Every attempt (success or failure) is stored immutably with provider,
   model, prompt version, schema version, duration and tokens.
 
 ## Components
 
-| File | Role |
-|---|---|
-| `src/lib/ai/types.ts` | `DocumentExtractionProvider` interface (`extractInvoice`) |
-| `src/lib/ai/provider.ts` | selects provider from `AI_PROVIDER` |
-| `src/lib/ai/gemini.ts` | Gemini via `@google/genai`, `responseJsonSchema`, temperature 0, timeout |
-| `src/lib/ai/mock.ts` | offline deterministic provider (dev/tests; supports failure markers) |
-| `src/lib/ai/prompts/invoice.ts` | versioned system instruction (`invoice-prompt@1.0.0`) |
-| `src/lib/ai/schema.ts` | Zod schema + JSON schema (`invoice-extraction-schema@1.0.0`) |
-| `src/lib/ai/normalize.ts` | decimal strings, ISO dates, ISO currency, IBAN, tax IDs |
-| `src/lib/documents/pipeline.ts` | orchestration with injected dependencies |
-| `src/lib/documents/repository.ts` | Supabase implementation of those dependencies |
+| File                              | Role                                                                     |
+| --------------------------------- | ------------------------------------------------------------------------ |
+| `src/lib/ai/types.ts`             | `DocumentExtractionProvider` interface (`extractInvoice`)                |
+| `src/lib/ai/provider.ts`          | selects provider from `AI_PROVIDER`                                      |
+| `src/lib/ai/gemini.ts`            | Gemini via `@google/genai`, `responseJsonSchema`, temperature 0, timeout |
+| `src/lib/ai/mock.ts`              | offline deterministic provider (dev/tests; supports failure markers)     |
+| `src/lib/ai/prompts/invoice.ts`   | versioned system instruction (`invoice-prompt@1.0.0`)                    |
+| `src/lib/ai/schema.ts`            | Zod schema + JSON schema (`invoice-extraction-schema@1.0.0`)             |
+| `src/lib/ai/normalize.ts`         | decimal strings, ISO dates, ISO currency, IBAN, tax IDs                  |
+| `src/lib/documents/pipeline.ts`   | orchestration with injected dependencies                                 |
+| `src/lib/documents/repository.ts` | Supabase implementation of those dependencies                            |
 
 ## Pipeline
 
@@ -74,7 +74,7 @@ Before sending real client documents to any AI provider, confirm:
 Development and CI use synthetic documents and the mock provider only. Logs
 never contain document content or raw AI responses.
 
-## AI assistant (not implemented — design)
+## AI assistant (implemented, tool-based)
 
 ```
 question → intent classification (LLM with function calling)
@@ -84,5 +84,14 @@ question → intent classification (LLM with function calling)
         → LLM phrases the answer ONLY from returned rows, citing documents
 ```
 
-Never execute LLM-generated SQL. Tools return validated data only; the
-assistant has no write tools in the first version.
+Implementation: `src/lib/assistant/` — `intents.ts` (Zod-validated tool
+union + deterministic pt/en `RuleBasedIntentParser`), `gemini-intents.ts`
+(structured output, falls back to rules), `tools.ts` (queries with the user's
+client, organization filter, validated documents only, `decimal.js` sums).
+The answer text is a translated template filled with computed values — the
+LLM never produces numbers. The question text is not logged.
+
+Tools: `spend_by_supplier`, `total_spend` (optionally by category),
+`top_suppliers`, `spend_by_category`, `invoices_due` (overdue / 7 / 30 days),
+`documents_to_review`. Unknown or ambiguous supplier names produce an explicit
+"not found" answer instead of a broader total.

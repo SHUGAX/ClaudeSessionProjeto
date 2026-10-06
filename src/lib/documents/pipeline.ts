@@ -1,7 +1,12 @@
 import type { InvoiceExtraction } from "@/lib/ai/schema";
 import type { DocumentExtractionProvider, ExtractionResult } from "@/lib/ai/types";
 import { matchSupplier, type SupplierRecord } from "@/lib/suppliers/matching";
-import { findDuplicateMatches, type DuplicateCandidate, type DuplicateMatch, type DuplicateSubject } from "./duplicates";
+import {
+  findDuplicateMatches,
+  type DuplicateCandidate,
+  type DuplicateMatch,
+  type DuplicateSubject,
+} from "./duplicates";
 import { validateDocument, type ValidationIssue } from "./validation";
 
 export interface PipelineDocument {
@@ -34,19 +39,42 @@ export interface PipelineDeps {
   claimForProcessing(doc: PipelineDocument, actorUserId: string): Promise<boolean>;
   downloadOriginal(doc: PipelineDocument): Promise<Uint8Array>;
   /** Appends an immutable extraction record and returns its id. */
-  saveExtraction(doc: PipelineDocument, result: ExtractionResult, actorUserId: string): Promise<string>;
+  saveExtraction(
+    doc: PipelineDocument,
+    result: ExtractionResult,
+    actorUserId: string,
+  ): Promise<string>;
   listSuppliers(organizationId: string): Promise<SupplierRecord[]>;
-  findDuplicateCandidates(organizationId: string, subject: DuplicateSubject): Promise<DuplicateCandidate[]>;
-  applyExtraction(doc: PipelineDocument, applied: AppliedExtraction, actorUserId: string): Promise<void>;
-  markFailed(doc: PipelineDocument, extractionId: string | null, errorCode: string, actorUserId: string): Promise<void>;
-  recordValidationEvent(doc: PipelineDocument, issues: ValidationIssue[], actorUserId: string): Promise<void>;
+  findDuplicateCandidates(
+    organizationId: string,
+    subject: DuplicateSubject,
+  ): Promise<DuplicateCandidate[]>;
+  applyExtraction(
+    doc: PipelineDocument,
+    applied: AppliedExtraction,
+    actorUserId: string,
+  ): Promise<void>;
+  markFailed(
+    doc: PipelineDocument,
+    extractionId: string | null,
+    errorCode: string,
+    actorUserId: string,
+  ): Promise<void>;
+  recordValidationEvent(
+    doc: PipelineDocument,
+    issues: ValidationIssue[],
+    actorUserId: string,
+  ): Promise<void>;
   audit(
     doc: PipelineDocument,
     action: "document.processing_started" | "document.extracted" | "document.extraction_failed",
     actorUserId: string,
     metadata: Record<string, unknown>,
   ): Promise<void>;
-  incrementUsage(organizationId: string, usage: { aiCalls: number; aiFailures: number; processed: number }): Promise<void>;
+  incrementUsage(
+    organizationId: string,
+    usage: { aiCalls: number; aiFailures: number; processed: number },
+  ): Promise<void>;
   today(organizationId: string): Promise<string>;
   afterProcessing(organizationId: string): Promise<void>;
 }
@@ -71,7 +99,9 @@ export async function runExtractionPipeline(
 ): Promise<PipelineOutcome> {
   const claimed = await deps.claimForProcessing(doc, actorUserId);
   if (!claimed) return { status: "skipped", reason: "not_claimable" };
-  await deps.audit(doc, "document.processing_started", actorUserId, { provider: deps.provider.name });
+  await deps.audit(doc, "document.processing_started", actorUserId, {
+    provider: deps.provider.name,
+  });
 
   let extractionId: string | null = null;
   try {
@@ -98,7 +128,10 @@ export async function runExtractionPipeline(
 
     const data = result.data;
     const suppliers = await deps.listSuppliers(doc.organizationId);
-    const match = matchSupplier({ name: data.supplier.name, taxId: data.supplier.taxId }, suppliers);
+    const match = matchSupplier(
+      { name: data.supplier.name, taxId: data.supplier.taxId },
+      suppliers,
+    );
     // Only a deterministic tax-ID match is linked automatically; names are suggestions.
     const supplier = match.kind === "tax_id" ? match.supplier : null;
     const categoryId = doc.categoryId ?? supplier?.default_category_id ?? null;
@@ -112,7 +145,10 @@ export async function runExtractionPipeline(
       total: data.total,
       fileSha256: doc.fileSha256,
     };
-    const duplicates = findDuplicateMatches(subject, await deps.findDuplicateCandidates(doc.organizationId, subject));
+    const duplicates = findDuplicateMatches(
+      subject,
+      await deps.findDuplicateCandidates(doc.organizationId, subject),
+    );
     const issues = validateDocument(
       {
         documentType: data.documentType,
@@ -133,7 +169,14 @@ export async function runExtractionPipeline(
 
     await deps.applyExtraction(
       doc,
-      { extractionId, data, supplier, categoryId, issues, possibleDuplicateOf: strongestDuplicate(duplicates) },
+      {
+        extractionId,
+        data,
+        supplier,
+        categoryId,
+        issues,
+        possibleDuplicateOf: strongestDuplicate(duplicates),
+      },
       actorUserId,
     );
     await deps.recordValidationEvent(doc, issues, actorUserId);
@@ -152,7 +195,10 @@ export async function runExtractionPipeline(
     // Infrastructure failure (storage, database...). The original stays intact.
     await deps.markFailed(doc, extractionId, "pipeline_error", actorUserId).catch(() => undefined);
     await deps
-      .audit(doc, "document.extraction_failed", actorUserId, { extractionId, errorCode: "pipeline_error" })
+      .audit(doc, "document.extraction_failed", actorUserId, {
+        extractionId,
+        errorCode: "pipeline_error",
+      })
       .catch(() => undefined);
     await deps.afterProcessing(doc.organizationId).catch(() => undefined);
     throw error;

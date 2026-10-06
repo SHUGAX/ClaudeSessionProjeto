@@ -26,9 +26,17 @@ export class MockExtractionProvider implements DocumentExtractionProvider {
       promptVersion: INVOICE_PROMPT_VERSION,
       schemaVersion: EXTRACTION_SCHEMA_VERSION,
     };
-    const marker = Buffer.from(input.bytes.subarray(0, Math.min(input.bytes.length, 200_000))).toString("latin1");
+    const marker = Buffer.from(
+      input.bytes.subarray(0, Math.min(input.bytes.length, 200_000)),
+    ).toString("latin1");
     if (marker.includes("MOCK_AI_FAIL")) {
-      return { ok: false, ...base, errorCode: "provider_unavailable", errorMessage: "Simulated provider failure", durationMs: 1 };
+      return {
+        ok: false,
+        ...base,
+        errorCode: "provider_unavailable",
+        errorMessage: "Simulated provider failure",
+        durationMs: 1,
+      };
     }
     if (marker.includes("MOCK_AI_INVALID")) {
       const raw = { document_type: "invoice", line_items: "not-an-array" };
@@ -62,7 +70,12 @@ export class MockExtractionProvider implements DocumentExtractionProvider {
       const n = hash.readUInt16BE(4);
       raw = {
         document_type: "invoice",
-        supplier: { name: "Fornecedor Exemplo, Lda.", tax_id: "PT123456789", address: null, email: null },
+        supplier: {
+          name: "Fornecedor Exemplo, Lda.",
+          tax_id: "PT123456789",
+          address: null,
+          email: null,
+        },
         customer: { name: null, tax_id: null },
         document_number: `FT MOCK/${n}`,
         issue_date: "2026-01-15",
@@ -73,7 +86,14 @@ export class MockExtractionProvider implements DocumentExtractionProvider {
         total,
         tax_breakdown: [{ rate: "23", base: subtotal, amount: tax }],
         line_items: [
-          { description: "Serviço de exemplo (dados simulados)", quantity: "1", unit_price: subtotal, tax_rate: "23", tax_amount: tax, line_total: subtotal },
+          {
+            description: "Serviço de exemplo (dados simulados)",
+            quantity: "1",
+            unit_price: subtotal,
+            tax_rate: "23",
+            tax_amount: tax,
+            line_total: subtotal,
+          },
         ],
         payment_reference: null,
         iban: null,

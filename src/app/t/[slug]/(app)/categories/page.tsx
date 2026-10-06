@@ -37,9 +37,13 @@ export default async function CategoriesPage({ params }: { params: Promise<{ slu
       ) : null}
       <Card>
         {(categories ?? []).length === 0 ? (
-          <EmptyState icon={FolderTree} title={t("categories.emptyTitle")} description={t("categories.emptyBody")} />
+          <EmptyState
+            icon={FolderTree}
+            title={t("categories.emptyTitle")}
+            description={t("categories.emptyBody")}
+          />
         ) : (
-          <ul className="divide-y divide-border">
+          <ul className="divide-border divide-y">
             {(categories ?? []).map((c) => (
               <CategoryRow key={c.id} id={c.id} name={c.name} code={c.code} canManage={canManage} />
             ))}

@@ -54,13 +54,20 @@ export function addDaysIso(iso: string, days: number): string {
 export function formatBusinessDate(iso: string | null | undefined, locale: string): string {
   if (!iso || !isValidIsoDate(iso)) return "—";
   const [y, m, d] = iso.split("-").map(Number) as [number, number, number];
-  return new Intl.DateTimeFormat(locale, { timeZone: "UTC", day: "2-digit", month: "2-digit", year: "numeric" }).format(
-    new Date(Date.UTC(y, m - 1, d)),
-  );
+  return new Intl.DateTimeFormat(locale, {
+    timeZone: "UTC",
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  }).format(new Date(Date.UTC(y, m - 1, d)));
 }
 
 /** Formats a UTC timestamp in the user's time zone. */
-export function formatTimestamp(value: string | null | undefined, locale: string, timeZone = "Europe/Lisbon"): string {
+export function formatTimestamp(
+  value: string | null | undefined,
+  locale: string,
+  timeZone = "Europe/Lisbon",
+): string {
   if (!value) return "—";
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return "—";

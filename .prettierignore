@@ -6,3 +6,5 @@ supabase/.temp
 playwright-report
 test-results
 coverage
+src/lib/supabase/database.types.ts
+supabase/config.toml

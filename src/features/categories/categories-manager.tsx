@@ -24,8 +24,20 @@ export function CategoryCreateForm() {
       <input type="hidden" name="tenant" value={slug} />
       <FormMessage error={state?.error} />
       <div className="flex flex-col gap-2 sm:flex-row">
-        <Input name="name" placeholder={t("categories.name")} aria-label={t("categories.name")} required maxLength={100} />
-        <Input name="code" placeholder={`${t("categories.code")} (${t("common.optional")})`} aria-label={t("categories.code")} maxLength={40} className="sm:w-48" />
+        <Input
+          name="name"
+          placeholder={t("categories.name")}
+          aria-label={t("categories.name")}
+          required
+          maxLength={100}
+        />
+        <Input
+          name="code"
+          placeholder={`${t("categories.code")} (${t("common.optional")})`}
+          aria-label={t("categories.code")}
+          maxLength={40}
+          className="sm:w-48"
+        />
         <SubmitButton>
           <Plus /> {t("common.add")}
         </SubmitButton>
@@ -34,7 +46,17 @@ export function CategoryCreateForm() {
   );
 }
 
-export function CategoryRow({ id, name, code, canManage }: { id: string; name: string; code: string | null; canManage: boolean }) {
+export function CategoryRow({
+  id,
+  name,
+  code,
+  canManage,
+}: {
+  id: string;
+  name: string;
+  code: string | null;
+  canManage: boolean;
+}) {
   const { t } = useI18n();
   const { slug } = useTenant();
   const [editing, setEditing] = useState(false);
@@ -51,27 +73,52 @@ export function CategoryRow({ id, name, code, canManage }: { id: string; name: s
   return (
     <li className="flex items-center gap-3 px-5 py-2.5">
       {editing ? (
-        <Input value={value} onChange={(e) => setValue(e.target.value)} className="h-8 max-w-sm" maxLength={100} autoFocus aria-label={t("categories.name")} />
+        <Input
+          value={value}
+          onChange={(e) => setValue(e.target.value)}
+          className="h-8 max-w-sm"
+          maxLength={100}
+          autoFocus
+          aria-label={t("categories.name")}
+        />
       ) : (
         <span className="flex-1 text-sm">
           {name}
-          {code ? <span className="ml-2 font-mono text-xs text-muted-foreground">{code}</span> : null}
+          {code ? (
+            <span className="text-muted-foreground ml-2 font-mono text-xs">{code}</span>
+          ) : null}
         </span>
       )}
       {canManage ? (
         <div className="ml-auto flex gap-1">
           {editing ? (
             <>
-              <Button size="icon-sm" variant="ghost" disabled={pending} onClick={() => handle(renameCategoryAction(slug, id, value))} aria-label={t("common.save")}>
+              <Button
+                size="icon-sm"
+                variant="ghost"
+                disabled={pending}
+                onClick={() => handle(renameCategoryAction(slug, id, value))}
+                aria-label={t("common.save")}
+              >
                 <Check />
               </Button>
-              <Button size="icon-sm" variant="ghost" onClick={() => setEditing(false)} aria-label={t("common.cancel")}>
+              <Button
+                size="icon-sm"
+                variant="ghost"
+                onClick={() => setEditing(false)}
+                aria-label={t("common.cancel")}
+              >
                 <X />
               </Button>
             </>
           ) : (
             <>
-              <Button size="icon-sm" variant="ghost" onClick={() => setEditing(true)} aria-label={t("common.edit")}>
+              <Button
+                size="icon-sm"
+                variant="ghost"
+                onClick={() => setEditing(true)}
+                aria-label={t("common.edit")}
+              >
                 <Pencil />
               </Button>
               <Button
@@ -79,7 +126,8 @@ export function CategoryRow({ id, name, code, canManage }: { id: string; name: s
                 variant="ghost"
                 disabled={pending}
                 onClick={() => {
-                  if (window.confirm(t("categories.deleteConfirm", { name }))) handle(deleteCategoryAction(slug, id));
+                  if (window.confirm(t("categories.deleteConfirm", { name })))
+                    handle(deleteCategoryAction(slug, id));
                 }}
                 aria-label={t("common.delete")}
               >

@@ -33,5 +33,10 @@ export async function loadAuthorizedDocument(documentId: string, capability: Cap
   if (!membership) throw new AppError("not_found");
   if (!can[capability](membership.role)) throw new AppError("forbidden");
 
-  return { doc, supabase, user: membership.user as SessionUser, role: membership.role as MemberRole };
+  return {
+    doc,
+    supabase,
+    user: membership.user as SessionUser,
+    role: membership.role as MemberRole,
+  };
 }

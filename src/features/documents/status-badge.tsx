@@ -4,7 +4,10 @@ import { Badge } from "@/components/ui/badge";
 import { useI18n } from "@/lib/i18n/client";
 import type { DocumentStatus } from "@/lib/supabase/types";
 
-const TONES: Record<DocumentStatus, "neutral" | "primary" | "success" | "warning" | "danger" | "info"> = {
+const TONES: Record<
+  DocumentStatus,
+  "neutral" | "primary" | "success" | "warning" | "danger" | "info"
+> = {
   uploading: "neutral",
   uploaded: "neutral",
   processing: "info",

@@ -34,7 +34,11 @@ function stringify(value: unknown): string {
   return String(value);
 }
 
-export default async function DocumentReviewPage({ params }: { params: Promise<{ slug: string; id: string }> }) {
+export default async function DocumentReviewPage({
+  params,
+}: {
+  params: Promise<{ slug: string; id: string }>;
+}) {
   const { slug, id } = await params;
   if (!UUID.test(id)) notFound();
   const ctx = await requireTenantContext(slug);
@@ -54,32 +58,52 @@ export default async function DocumentReviewPage({ params }: { params: Promise<{
     .maybeSingle();
   if (!doc) notFound();
 
-  const [settings, lineItems, suppliers, categories, extractions, audit, validator] = await Promise.all([
-    supabase.from("organization_settings").select("timezone").eq("organization_id", orgId).maybeSingle(),
-    supabase
-      .from("document_line_items")
-      .select("description, quantity::text, unit_price::text, tax_rate::text, tax_amount::text, line_total::text")
-      .eq("document_id", id)
-      .order("position"),
-    supabase.from("suppliers").select("id, name, tax_id, default_category_id").eq("organization_id", orgId).order("name").limit(2000),
-    supabase.from("categories").select("id, name").eq("organization_id", orgId).order("name"),
-    supabase
-      .from("document_extractions")
-      .select("id, provider, model, prompt_version, status, error_code, processing_duration_ms, confidence, structured_data, created_at")
-      .eq("document_id", id)
-      .order("created_at", { ascending: false })
-      .limit(20),
-    supabase
-      .from("audit_logs")
-      .select("id, action, actor_type, old_values, new_values, created_at, profiles(full_name, email)")
-      .eq("entity_type", "document")
-      .eq("entity_id", id)
-      .order("created_at", { ascending: false })
-      .limit(100),
-    doc.validated_by
-      ? supabase.from("profiles").select("full_name, email").eq("id", doc.validated_by).maybeSingle()
-      : Promise.resolve({ data: null }),
-  ]);
+  const [settings, lineItems, suppliers, categories, extractions, audit, validator] =
+    await Promise.all([
+      supabase
+        .from("organization_settings")
+        .select("timezone")
+        .eq("organization_id", orgId)
+        .maybeSingle(),
+      supabase
+        .from("document_line_items")
+        .select(
+          "description, quantity::text, unit_price::text, tax_rate::text, tax_amount::text, line_total::text",
+        )
+        .eq("document_id", id)
+        .order("position"),
+      supabase
+        .from("suppliers")
+        .select("id, name, tax_id, default_category_id")
+        .eq("organization_id", orgId)
+        .order("name")
+        .limit(2000),
+      supabase.from("categories").select("id, name").eq("organization_id", orgId).order("name"),
+      supabase
+        .from("document_extractions")
+        .select(
+          "id, provider, model, prompt_version, status, error_code, processing_duration_ms, confidence, structured_data, created_at",
+        )
+        .eq("document_id", id)
+        .order("created_at", { ascending: false })
+        .limit(20),
+      supabase
+        .from("audit_logs")
+        .select(
+          "id, action, actor_type, old_values, new_values, created_at, profiles(full_name, email)",
+        )
+        .eq("entity_type", "document")
+        .eq("entity_id", id)
+        .order("created_at", { ascending: false })
+        .limit(100),
+      doc.validated_by
+        ? supabase
+            .from("profiles")
+            .select("full_name, email")
+            .eq("id", doc.validated_by)
+            .maybeSingle()
+        : Promise.resolve({ data: null }),
+    ]);
 
   const timezone = settings.data?.timezone ?? "Europe/Lisbon";
   const today = todayIso(timezone);
@@ -94,15 +118,39 @@ export default async function DocumentReviewPage({ params }: { params: Promise<{
     total: doc.total,
     fileSha256: doc.file_sha256,
   };
-  const duplicates = findDuplicateMatches(subject, await duplicateCandidates(supabase, orgId, subject));
-  const relatedIds = [...new Set([...duplicates.map((d) => d.documentId), ...(doc.possible_duplicate_of ? [doc.possible_duplicate_of] : [])])];
+  const duplicates = findDuplicateMatches(
+    subject,
+    await duplicateCandidates(supabase, orgId, subject),
+  );
+  const relatedIds = [
+    ...new Set([
+      ...duplicates.map((d) => d.documentId),
+      ...(doc.possible_duplicate_of ? [doc.possible_duplicate_of] : []),
+    ]),
+  ];
   const { data: relatedDocs } = relatedIds.length
-    ? await supabase.from("documents").select("id, document_number, supplier_name, issue_date").in("id", relatedIds)
-    : { data: [] as Array<{ id: string; document_number: string | null; supplier_name: string | null; issue_date: string | null }> };
+    ? await supabase
+        .from("documents")
+        .select("id, document_number, supplier_name, issue_date")
+        .in("id", relatedIds)
+    : {
+        data: [] as Array<{
+          id: string;
+          document_number: string | null;
+          supplier_name: string | null;
+          issue_date: string | null;
+        }>,
+      };
   const duplicateLabels = Object.fromEntries(
     (relatedDocs ?? []).map((d) => [
       d.id,
-      [d.document_number ?? t("documents.unnamed"), d.supplier_name, formatBusinessDate(d.issue_date, locale)].filter(Boolean).join(" · "),
+      [
+        d.document_number ?? t("documents.unnamed"),
+        d.supplier_name,
+        formatBusinessDate(d.issue_date, locale),
+      ]
+        .filter(Boolean)
+        .join(" · "),
     ]),
   );
 
@@ -127,7 +175,11 @@ export default async function DocumentReviewPage({ params }: { params: Promise<{
     const newValues = (a.new_values ?? {}) as Record<string, unknown>;
     const changes =
       a.action === "document.updated"
-        ? Object.keys(newValues).map((field) => ({ field, from: stringify(oldValues[field]), to: stringify(newValues[field]) }))
+        ? Object.keys(newValues).map((field) => ({
+            field,
+            from: stringify(oldValues[field]),
+            to: stringify(newValues[field]),
+          }))
         : [];
     return {
       id: a.id,
@@ -148,7 +200,7 @@ export default async function DocumentReviewPage({ params }: { params: Promise<{
         <div className="min-w-0">
           <Link
             href={tenantPath(slug, "/documents")}
-            className="mb-1.5 inline-flex items-center gap-1 text-[13px] text-muted-foreground hover:text-foreground"
+            className="text-muted-foreground hover:text-foreground mb-1.5 inline-flex items-center gap-1 text-[13px]"
           >
             <ArrowLeft className="size-3.5" aria-hidden /> {t("documents.title")}
           </Link>
@@ -164,7 +216,7 @@ export default async function DocumentReviewPage({ params }: { params: Promise<{
             ) : null}
             {doc.paid_at ? <Badge tone="success">{t("documents.paid")}</Badge> : null}
           </div>
-          <p className="mt-1 text-[13px] text-muted-foreground">
+          <p className="text-muted-foreground mt-1 text-[13px]">
             {t.dynamic(`documentTypes.${doc.document_type}`)} · {doc.original_filename} ·{" "}
             {doc.validated_at
               ? t("review.humanValidated", {
@@ -183,9 +235,16 @@ export default async function DocumentReviewPage({ params }: { params: Promise<{
         />
       </div>
 
-      {doc.status === "archived" ? <Callout tone="info">{t("review.archivedNotice")}</Callout> : null}
+      {doc.status === "archived" ? (
+        <Callout tone="info">{t("review.archivedNotice")}</Callout>
+      ) : null}
       {processing ? (
-        <ProcessingWatcher documentId={doc.id} status={doc.status as "uploaded" | "processing"} stale={stale} canStart={canEdit} />
+        <ProcessingWatcher
+          documentId={doc.id}
+          status={doc.status as "uploaded" | "processing"}
+          stale={stale}
+          canStart={canEdit}
+        />
       ) : null}
       {doc.status === "failed" ? (
         <Callout tone="danger" title={t("review.failedTitle")}>
@@ -196,7 +255,7 @@ export default async function DocumentReviewPage({ params }: { params: Promise<{
       <div className="grid grid-cols-1 gap-5 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
         <section
           aria-label={t("review.original")}
-          className="h-[60vh] overflow-hidden rounded-lg border border-border bg-surface xl:sticky xl:top-20 xl:h-[calc(100dvh-7rem)]"
+          className="border-border bg-surface h-[60vh] overflow-hidden rounded-lg border xl:sticky xl:top-20 xl:h-[calc(100dvh-7rem)]"
         >
           <DocumentViewer documentId={doc.id} mimeType={doc.mime_type} />
         </section>

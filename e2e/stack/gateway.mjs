@@ -27,7 +27,12 @@ http
       res.writeHead(204, CORS);
       return res.end();
     }
-    const route = ROUTES.find((r) => req.url === r.prefix || req.url.startsWith(`${r.prefix}/`) || req.url.startsWith(`${r.prefix}?`));
+    const route = ROUTES.find(
+      (r) =>
+        req.url === r.prefix ||
+        req.url.startsWith(`${r.prefix}/`) ||
+        req.url.startsWith(`${r.prefix}?`),
+    );
     if (!route) {
       res.writeHead(404, { "content-type": "application/json", ...CORS });
       return res.end(JSON.stringify({ message: "no route" }));

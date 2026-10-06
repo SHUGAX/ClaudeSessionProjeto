@@ -8,18 +8,31 @@
 import { createHash, randomUUID } from "node:crypto";
 import { existsSync } from "node:fs";
 import { createClient } from "@supabase/supabase-js";
-import { createSyntheticInvoicePdf, invoiceTotals, syntheticNif, type SyntheticInvoice } from "./lib/synthetic-invoice";
+import {
+  createSyntheticInvoicePdf,
+  invoiceTotals,
+  syntheticNif,
+  type SyntheticInvoice,
+} from "./lib/synthetic-invoice";
 
 for (const file of [".env.local", ".env"]) if (existsSync(file)) process.loadEnvFile(file);
 
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-if (!url || !serviceKey) throw new Error("NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY are required");
-if (!/^https?:\/\/(127\.0\.0\.1|localhost)(:\d+)?/.test(url) && process.env.SEED_ALLOW_REMOTE !== "1") {
-  throw new Error(`Refusing to seed a non-local Supabase (${url}). Set SEED_ALLOW_REMOTE=1 if you really mean it.`);
+if (!url || !serviceKey)
+  throw new Error("NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY are required");
+if (
+  !/^https?:\/\/(127\.0\.0\.1|localhost)(:\d+)?/.test(url) &&
+  process.env.SEED_ALLOW_REMOTE !== "1"
+) {
+  throw new Error(
+    `Refusing to seed a non-local Supabase (${url}). Set SEED_ALLOW_REMOTE=1 if you really mean it.`,
+  );
 }
 
-const db = createClient(url, serviceKey, { auth: { persistSession: false, autoRefreshToken: false } });
+const db = createClient(url, serviceKey, {
+  auth: { persistSession: false, autoRefreshToken: false },
+});
 export const DEMO_PASSWORD = process.env.SEED_PASSWORD ?? "Demo-Password-2026";
 
 const USERS = [
@@ -31,11 +44,24 @@ const USERS = [
 ] as const;
 
 const TENANTS = [
-  { slug: "empresa-a", name: "Empresa A Demo", legal: "Empresa A Demonstração, Lda.", taxSeed: 1001 },
-  { slug: "empresa-b", name: "Empresa B Demo", legal: "Empresa B Demonstração, S.A.", taxSeed: 2002 },
+  {
+    slug: "empresa-a",
+    name: "Empresa A Demo",
+    legal: "Empresa A Demonstração, Lda.",
+    taxSeed: 1001,
+  },
+  {
+    slug: "empresa-b",
+    name: "Empresa B Demo",
+    legal: "Empresa B Demonstração, S.A.",
+    taxSeed: 2002,
+  },
 ] as const;
 
-function check<T>(result: { data: T; error: { message: string } | null }, what: string): NonNullable<T> {
+function check<T>(
+  result: { data: T; error: { message: string } | null },
+  what: string,
+): NonNullable<T> {
   if (result.error) throw new Error(`${what}: ${result.error.message}`);
   return result.data as NonNullable<T>;
 }
@@ -47,9 +73,16 @@ async function findUserId(email: string): Promise<string | null> {
 
 async function reset() {
   for (const t of TENANTS) {
-    const { data: org } = await db.from("organizations").select("id").eq("slug", t.slug).maybeSingle();
+    const { data: org } = await db
+      .from("organizations")
+      .select("id")
+      .eq("slug", t.slug)
+      .maybeSingle();
     if (!org) continue;
-    const { data: docs } = await db.from("documents").select("storage_path").eq("organization_id", org.id);
+    const { data: docs } = await db
+      .from("documents")
+      .select("storage_path")
+      .eq("organization_id", org.id);
     if (docs?.length) await db.storage.from("documents").remove(docs.map((d) => d.storage_path));
     // Owners are protected by a trigger while the organization exists; deleting the org cascades.
     check(await db.from("organizations").delete().eq("id", org.id), `delete ${t.slug}`);
@@ -84,7 +117,11 @@ async function main() {
   const { data: plan } = await db.from("plans").select("id").eq("code", "standard").single();
 
   for (const [index, t] of TENANTS.entries()) {
-    const { data: existing } = await db.from("organizations").select("id").eq("slug", t.slug).maybeSingle();
+    const { data: existing } = await db
+      .from("organizations")
+      .select("id")
+      .eq("slug", t.slug)
+      .maybeSingle();
     if (existing) {
       console.log(`tenant ${t.slug} already exists — skipping (use --reset to recreate)`);
       continue;
@@ -92,7 +129,14 @@ async function main() {
     const org = check(
       await db
         .from("organizations")
-        .insert({ name: t.name, legal_name: t.legal, slug: t.slug, tax_id: syntheticNif(t.taxSeed), plan_id: plan?.id ?? null, created_by: ids.platform! })
+        .insert({
+          name: t.name,
+          legal_name: t.legal,
+          slug: t.slug,
+          tax_id: syntheticNif(t.taxSeed),
+          plan_id: plan?.id ?? null,
+          created_by: ids.platform!,
+        })
         .select("id")
         .single(),
       `create ${t.slug}`,
@@ -106,23 +150,45 @@ async function main() {
       ...(index === 0 ? [{ user_id: ids.viewerA!, role: "viewer" as const }] : []),
     ];
     check(
-      await db.from("organization_members").insert(members.map((m) => ({ ...m, organization_id: org.id, joined_at: new Date().toISOString() }))),
+      await db.from("organization_members").insert(
+        members.map((m) => ({
+          ...m,
+          organization_id: org.id,
+          joined_at: new Date().toISOString(),
+        })),
+      ),
       "members",
     );
 
     const categories = check(
       await db
         .from("categories")
-        .insert(["Eletricidade", "Telecomunicações", "Material de escritório", "Serviços"].map((name) => ({ organization_id: org.id, name })))
+        .insert(
+          ["Eletricidade", "Telecomunicações", "Material de escritório", "Serviços"].map(
+            (name) => ({ organization_id: org.id, name }),
+          ),
+        )
         .select("id, name"),
       "categories",
     );
     const cat = (name: string) => categories.find((c) => c.name === name)?.id ?? null;
 
     const supplierDefs = [
-      { name: `Energia Exemplo ${index ? "Norte" : "Sul"}, S.A.`, tax: syntheticNif(3000 + index), category: "Eletricidade" },
-      { name: `Telecom Fictícia ${index ? "B" : "A"}, Lda.`, tax: syntheticNif(4000 + index), category: "Telecomunicações" },
-      { name: "Papelaria Imaginária, Lda.", tax: syntheticNif(5000 + index), category: "Material de escritório" },
+      {
+        name: `Energia Exemplo ${index ? "Norte" : "Sul"}, S.A.`,
+        tax: syntheticNif(3000 + index),
+        category: "Eletricidade",
+      },
+      {
+        name: `Telecom Fictícia ${index ? "B" : "A"}, Lda.`,
+        tax: syntheticNif(4000 + index),
+        category: "Telecomunicações",
+      },
+      {
+        name: "Papelaria Imaginária, Lda.",
+        tax: syntheticNif(5000 + index),
+        category: "Material de escritório",
+      },
     ];
     const suppliers = check(
       await db
@@ -154,15 +220,28 @@ async function main() {
         issueDate: `2026-${month}-10`,
         dueDate: `2026-${month}-${i % 2 ? "25" : "28"}`,
         lines: [
-          { description: "Serviço mensal (sintético)", quantity: "1", unitPrice: String(40 + i * 17.5), taxRate: "23" },
-          { description: "Taxa adicional (sintética)", quantity: "2", unitPrice: "3.25", taxRate: "23" },
+          {
+            description: "Serviço mensal (sintético)",
+            quantity: "1",
+            unitPrice: String(40 + i * 17.5),
+            taxRate: "23",
+          },
+          {
+            description: "Taxa adicional (sintética)",
+            quantity: "2",
+            unitPrice: "3.25",
+            taxRate: "23",
+          },
         ],
       };
       const totals = invoiceTotals(invoice);
       const bytes = await createSyntheticInvoicePdf(invoice);
       const id = randomUUID();
       const path = `organizations/${org.id}/documents/${id}/original.pdf`;
-      check(await db.storage.from("documents").upload(path, bytes, { contentType: "application/pdf" }), "upload");
+      check(
+        await db.storage.from("documents").upload(path, bytes, { contentType: "application/pdf" }),
+        "upload",
+      );
       const validated = i < docCount - 1;
       check(
         await db.from("documents").insert({

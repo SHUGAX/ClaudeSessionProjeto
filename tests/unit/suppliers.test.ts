@@ -3,7 +3,12 @@ import { matchSupplier, nameSimilarity, normalizeCompanyName } from "@/lib/suppl
 
 const suppliers = [
   { id: "1", name: "EDP Comercial, S.A.", tax_id: "503504564", default_category_id: "cat-energy" },
-  { id: "2", name: "Vodafone Portugal - Comunicações Pessoais, S.A.", tax_id: "502544180", default_category_id: null },
+  {
+    id: "2",
+    name: "Vodafone Portugal - Comunicações Pessoais, S.A.",
+    tax_id: "502544180",
+    default_category_id: null,
+  },
   { id: "3", name: "Papelaria Central Lda", tax_id: null, default_category_id: null },
 ];
 
@@ -30,7 +35,9 @@ describe("supplier matching", () => {
   });
 
   it("returns none for unrelated names", () => {
-    expect(matchSupplier({ name: "Restaurante O Bom Garfo", taxId: null }, suppliers).kind).toBe("none");
+    expect(matchSupplier({ name: "Restaurante O Bom Garfo", taxId: null }, suppliers).kind).toBe(
+      "none",
+    );
     expect(nameSimilarity("abc", "")).toBe(0);
   });
 });

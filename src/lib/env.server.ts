@@ -54,7 +54,10 @@ export function serverEnv(): ServerEnv {
   if (parsed.data.NODE_ENV === "production" && parsed.data.AI_PROVIDER === "mock") {
     // Allowed (e.g. demo deployments) but must be a conscious decision.
     console.warn(
-      JSON.stringify({ level: "warn", msg: "AI_PROVIDER=mock in production: extraction is simulated" }),
+      JSON.stringify({
+        level: "warn",
+        msg: "AI_PROVIDER=mock in production: extraction is simulated",
+      }),
     );
   }
   cached = parsed.data;

@@ -61,6 +61,7 @@ export const ptPT = {
     suppliers: "Fornecedores",
     categories: "Categorias",
     alerts: "Alertas",
+    assistant: "Assistente",
     users: "Utilizadores",
     settings: "Definições",
     audit: "Auditoria",
@@ -85,7 +86,8 @@ export const ptPT = {
     noPublicSignup:
       "O acesso é feito por convite. Se a sua empresa pretende utilizar a plataforma, contacte-nos.",
     forgotTitle: "Recuperar palavra-passe",
-    forgotSubtitle: "Indique o seu email. Se existir uma conta, receberá uma ligação para definir uma nova palavra-passe.",
+    forgotSubtitle:
+      "Indique o seu email. Se existir uma conta, receberá uma ligação para definir uma nova palavra-passe.",
     sendResetLink: "Enviar ligação",
     resetLinkSent:
       "Se o email estiver registado, receberá em breve uma mensagem com as instruções. Verifique também a pasta de spam.",
@@ -129,7 +131,8 @@ export const ptPT = {
     wrongAccount: "Este convite destina-se a {email}, mas a sessão atual é de outra conta.",
     invalid: "Este convite é inválido, expirou ou já foi utilizado.",
     accepted: "Convite aceite. Bem-vindo!",
-    limitReached: "A empresa atingiu o limite de utilizadores do seu plano. Contacte o administrador.",
+    limitReached:
+      "A empresa atingiu o limite de utilizadores do seu plano. Contacte o administrador.",
   },
   roles: {
     owner: "Proprietário",
@@ -234,7 +237,8 @@ export const ptPT = {
   },
   upload: {
     title: "Carregar documentos",
-    subtitle: "Carregue faturas de fornecedores. O original é guardado de forma privada e nunca é alterado.",
+    subtitle:
+      "Carregue faturas de fornecedores. O original é guardado de forma privada e nunca é alterado.",
     dropzone: "Arraste ficheiros para aqui ou clique para escolher",
     dropzoneActive: "Largue os ficheiros para carregar",
     chooseFiles: "Escolher ficheiros",
@@ -249,7 +253,8 @@ export const ptPT = {
     failed: "Falhou",
     review: "Rever",
     retry: "Tentar novamente",
-    processingFailed: "O ficheiro foi guardado, mas a extração falhou. Pode tentar novamente na página do documento.",
+    processingFailed:
+      "O ficheiro foi guardado, mas a extração falhou. Pode tentar novamente na página do documento.",
     errors: {
       unsupported_file: "Tipo de ficheiro não suportado.",
       file_too_large: "O ficheiro excede o tamanho máximo permitido.",
@@ -327,8 +332,10 @@ export const ptPT = {
     unarchive: "Desarquivar",
     markPaid: "Marcar como paga",
     markUnpaid: "Marcar como não paga",
-    archiveConfirm: "Arquivar este documento? O original e os dados são mantidos e pode desarquivá-lo mais tarde.",
-    retryConfirm: "Será criada uma nova extração. As extrações anteriores ficam guardadas no histórico. Os valores atuais não validados serão substituídos pelos novos valores sugeridos.",
+    archiveConfirm:
+      "Arquivar este documento? O original e os dados são mantidos e pode desarquivá-lo mais tarde.",
+    retryConfirm:
+      "Será criada uma nova extração. As extrações anteriores ficam guardadas no histórico. Os valores atuais não validados serão substituídos pelos novos valores sugeridos.",
     saved: "Alterações guardadas.",
     validated: "Documento validado.",
     validationBlocked: "Corrija os erros assinalados antes de validar.",
@@ -336,7 +343,8 @@ export const ptPT = {
     processingBody: "A IA está a extrair os dados. Esta página atualiza automaticamente.",
     processingStale: "O processamento está a demorar mais do que o esperado.",
     failedTitle: "A extração automática falhou",
-    failedBody: "O documento original está guardado em segurança. Pode repetir a extração ou preencher os dados manualmente.",
+    failedBody:
+      "O documento original está guardado em segurança. Pode repetir a extração ou preencher os dados manualmente.",
     fillManually: "Preencher manualmente",
     readOnly: "Só de leitura: o seu perfil não permite editar documentos.",
     archivedNotice: "Este documento está arquivado.",
@@ -366,7 +374,8 @@ export const ptPT = {
     future_issue_date: "A data do documento está no futuro.",
     very_old_issue_date: "A data do documento é anterior a 10 anos.",
     invalid_currency: "Código de moeda inválido.",
-    invalid_nif: "O NIF {taxId} não passa na verificação de dígito de controlo português (pode ser estrangeiro).",
+    invalid_nif:
+      "O NIF {taxId} não passa na verificação de dígito de controlo português (pode ser estrangeiro).",
     negative_total: "O total é negativo para um documento que normalmente não o permite.",
     tax_exceeds_subtotal: "O IVA é superior ao subtotal; confirme os valores.",
     exact_duplicate: "Ficheiro idêntico a outro documento já carregado.",
@@ -410,10 +419,10 @@ export const ptPT = {
     name: "Nome",
     code: "Código",
     emptyTitle: "Ainda não há categorias",
-    emptyBody: "Crie categorias como \"Eletricidade\" ou \"Telecomunicações\".",
+    emptyBody: 'Crie categorias como "Eletricidade" ou "Telecomunicações".',
     duplicate: "Já existe uma categoria com este nome.",
     inUse: "Esta categoria está em uso e foi removida dos documentos associados.",
-    deleteConfirm: "Eliminar a categoria \"{name}\"? Os documentos ficam sem categoria.",
+    deleteConfirm: 'Eliminar a categoria "{name}"? Os documentos ficam sem categoria.',
   },
   alerts: {
     title: "Alertas",
@@ -565,7 +574,8 @@ export const ptPT = {
       slugHint: "Letras minúsculas, números e hífenes. Será usado em {example}.",
       plan: "Plano",
       adminEmail: "Email do administrador inicial",
-      adminEmailHint: "Receberá um convite para definir a sua palavra-passe. Nunca enviamos palavras-passe por email.",
+      adminEmailHint:
+        "Receberá um convite para definir a sua palavra-passe. Nunca enviamos palavras-passe por email.",
       limits: "Limites (deixe vazio para usar os do plano)",
       maxUsers: "Máx. utilizadores",
       maxDocuments: "Máx. documentos/mês",
@@ -581,7 +591,8 @@ export const ptPT = {
     updated: "Empresa atualizada.",
     suspend: "Suspender",
     reactivate: "Reativar",
-    suspendConfirm: "Suspender {name}? Os utilizadores deixam de conseguir aceder até à reativação.",
+    suspendConfirm:
+      "Suspender {name}? Os utilizadores deixam de conseguir aceder até à reativação.",
     suspendReason: "Motivo (interno)",
     inviteAdmin: "Convidar administrador",
     usage: "Utilização",
@@ -591,6 +602,48 @@ export const ptPT = {
       "Por privacidade, a administração da plataforma não tem acesso aos documentos das empresas.",
     invitations: "Convites",
     members: "Utilizadores",
+  },
+  assistant: {
+    title: "Assistente",
+    subtitle: "Faça perguntas sobre os documentos validados da empresa.",
+    placeholder: "Ex.: Quanto gastámos com a Energia Exemplo este ano?",
+    ask: "Perguntar",
+    thinking: "A procurar…",
+    examplesTitle: "Exemplos",
+    example1: "Quanto gastámos com {supplier} este ano?",
+    example2: "Quais são os principais fornecedores este ano?",
+    example3: "Que faturas estão vencidas?",
+    example4: "Quais documentos estão por rever?",
+    sourceNote:
+      "Resposta calculada diretamente a partir de {count} documento(s) da base de dados. A IA apenas interpreta a pergunta — não gera os valores.",
+    error: "Não foi possível responder. Tente reformular a pergunta.",
+    you: "Você",
+    total: "Total",
+    periods: {
+      this_month: "este mês",
+      last_month: "no mês passado",
+      this_year: "este ano",
+      last_year: "no ano passado",
+      all: "desde sempre",
+    },
+    ranges: {
+      overdue: "vencidas",
+      next_7: "a vencer nos próximos 7 dias",
+      next_30: "a vencer nos próximos 30 dias",
+    },
+    answers: {
+      spend_by_supplier: "Total validado com {supplier} {period}: {total} ({count} documento(s)).",
+      total_spend: "Total validado {period}{categorySuffix}: {total} ({count} documento(s)).",
+      top_suppliers: "Principais fornecedores {period} (total {total}):",
+      spend_by_category: "Distribuição por categoria {period} (total {total}):",
+      invoices_due: "Faturas por pagar {range}: {count}, no total de {total}.",
+      documents_to_review: "Há {count} documento(s) por rever.",
+      unknown:
+        "Ainda não sei responder a essa pergunta. Posso calcular gastos por fornecedor, por categoria ou totais, listar faturas vencidas ou a vencer e documentos por rever.",
+      supplier_not_found: 'Não encontrei o fornecedor "{supplier}" nesta empresa.',
+    },
+    categorySuffix: " na categoria {category}",
+    uncategorized: "Sem categoria",
   },
   legal: {
     privacy: "Política de Privacidade",
@@ -631,5 +684,7 @@ export const ptPT = {
   },
 };
 
-type DeepStringRecord<T> = { [K in keyof T]: T[K] extends string ? string : DeepStringRecord<T[K]> };
+type DeepStringRecord<T> = {
+  [K in keyof T]: T[K] extends string ? string : DeepStringRecord<T[K]>;
+};
 export type Messages = DeepStringRecord<typeof ptPT>;

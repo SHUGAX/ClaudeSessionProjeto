@@ -12,23 +12,27 @@ import type { Database } from "./database.types";
 export async function createSupabaseServerClient() {
   const env = publicEnv();
   const cookieStore = await cookies();
-  return createServerClient<Database>(env.NEXT_PUBLIC_SUPABASE_URL, env.NEXT_PUBLIC_SUPABASE_ANON_KEY, {
-    cookieOptions: sessionCookieOptions(),
-    cookies: {
-      getAll() {
-        return cookieStore.getAll();
-      },
-      setAll(cookiesToSet) {
-        try {
-          for (const { name, value, options } of cookiesToSet) {
-            cookieStore.set(name, value, { ...options, ...sessionCookieOptions() });
+  return createServerClient<Database>(
+    env.NEXT_PUBLIC_SUPABASE_URL,
+    env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+    {
+      cookieOptions: sessionCookieOptions(),
+      cookies: {
+        getAll() {
+          return cookieStore.getAll();
+        },
+        setAll(cookiesToSet) {
+          try {
+            for (const { name, value, options } of cookiesToSet) {
+              cookieStore.set(name, value, { ...options, ...sessionCookieOptions() });
+            }
+          } catch {
+            // Called from a Server Component: cookies are refreshed by the proxy instead.
           }
-        } catch {
-          // Called from a Server Component: cookies are refreshed by the proxy instead.
-        }
+        },
       },
     },
-  });
+  );
 }
 
 export type UserSupabaseClient = Awaited<ReturnType<typeof createSupabaseServerClient>>;

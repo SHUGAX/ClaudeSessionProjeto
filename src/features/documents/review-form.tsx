@@ -112,7 +112,12 @@ export function ReviewForm({
 }: {
   document: ReviewDocument;
   lineItems: ReviewLineItem[];
-  suppliers: Array<{ id: string; name: string; tax_id: string | null; default_category_id: string | null }>;
+  suppliers: Array<{
+    id: string;
+    name: string;
+    tax_id: string | null;
+    default_category_id: string | null;
+  }>;
   categories: Array<{ id: string; name: string }>;
   duplicates: DuplicateMatch[];
   duplicateLabels: Record<string, string>;
@@ -138,7 +143,8 @@ export function ReviewForm({
   );
   const [dirty, setDirty] = useState(false);
   const [serverError, setServerError] = useState<string | null>(null);
-  const editable = canEdit && (document.status === "review_required" || document.status === "failed");
+  const editable =
+    canEdit && (document.status === "review_required" || document.status === "failed");
 
   useEffect(() => {
     if (!dirty) return;
@@ -155,7 +161,10 @@ export function ReviewForm({
   const linkedSupplier = suppliers.find((s) => s.id === values.supplierId) ?? null;
   const supplierSuggestion = useMemo(() => {
     if (values.supplierId) return null;
-    const match = matchSupplier({ name: values.supplierName || null, taxId: values.supplierTaxId || null }, suppliers);
+    const match = matchSupplier(
+      { name: values.supplierName || null, taxId: values.supplierTaxId || null },
+      suppliers,
+    );
     return match.kind === "none" ? null : match;
   }, [values.supplierId, values.supplierName, values.supplierTaxId, suppliers]);
 
@@ -185,7 +194,8 @@ export function ReviewForm({
       ),
     [values, items, today, duplicates],
   );
-  const fieldIssue = (field: string) => issues.find((i) => i.field === field && i.severity === "error");
+  const fieldIssue = (field: string) =>
+    issues.find((i) => i.field === field && i.severity === "error");
 
   const submit = (intent: "draft" | "validate") => {
     setServerError(null);
@@ -239,10 +249,14 @@ export function ReviewForm({
     if (!aiValues || document.status === "validated" || !(key in aiValues)) return null;
     const ai = aiValues[key] ?? "";
     const current = values[key];
-    const same =
-      ["subtotal", "taxTotal", "total"].includes(key) ? parseAmount(current) === (ai || null) : current === (ai ?? "");
+    const same = ["subtotal", "taxTotal", "total"].includes(key)
+      ? parseAmount(current) === (ai || null)
+      : current === (ai ?? "");
     return same && ai ? (
-      <span className="inline-flex items-center gap-1 text-[11px] text-info" title={t("review.aiSuggested")}>
+      <span
+        className="text-info inline-flex items-center gap-1 text-[11px]"
+        title={t("review.aiSuggested")}
+      >
         <Sparkles className="size-3" aria-hidden /> IA
       </span>
     ) : null;
@@ -250,7 +264,9 @@ export function ReviewForm({
 
   const errorText = (field: string) => {
     const issue = fieldIssue(field);
-    return issue ? t.dynamic(`validationIssues.${issue.code}`, issue.code, { field: "", ...issue.params }) : undefined;
+    return issue
+      ? t.dynamic(`validationIssues.${issue.code}`, issue.code, { field: "", ...issue.params })
+      : undefined;
   };
 
   return (
@@ -269,7 +285,10 @@ export function ReviewForm({
 
       <ValidationPanel issues={issues} duplicateLabels={duplicateLabels} />
 
-      <Section title={t("review.supplierSection")} icon={<Building2 className="size-4" aria-hidden />}>
+      <Section
+        title={t("review.supplierSection")}
+        icon={<Building2 className="size-4" aria-hidden />}
+      >
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <Field
             label={t("review.fields.supplierName")}
@@ -287,7 +306,11 @@ export function ReviewForm({
               aria-invalid={Boolean(fieldIssue("supplierName"))}
             />
           </Field>
-          <Field label={t("review.fields.supplierTaxId")} htmlFor="supplierTaxId" aside={aiBadge("supplierTaxId")}>
+          <Field
+            label={t("review.fields.supplierTaxId")}
+            htmlFor="supplierTaxId"
+            aside={aiBadge("supplierTaxId")}
+          >
             <Input
               id="supplierTaxId"
               value={values.supplierTaxId}
@@ -305,7 +328,8 @@ export function ReviewForm({
                 const id = e.target.value;
                 set("supplierId", id);
                 const s = suppliers.find((x) => x.id === id);
-                if (s?.default_category_id && !values.categoryId) set("categoryId", s.default_category_id);
+                if (s?.default_category_id && !values.categoryId)
+                  set("categoryId", s.default_category_id);
               }}
               disabled={!editable}
             >
@@ -321,10 +345,16 @@ export function ReviewForm({
         </div>
         <div className="mt-3">
           {linkedSupplier ? (
-            <p className="flex items-center gap-2 text-[13px] text-success">
-              <Link2 className="size-4" aria-hidden /> {t("review.supplierMatch.linked")}: {linkedSupplier.name}
+            <p className="text-success flex items-center gap-2 text-[13px]">
+              <Link2 className="size-4" aria-hidden /> {t("review.supplierMatch.linked")}:{" "}
+              {linkedSupplier.name}
               {editable ? (
-                <Button variant="link" size="sm" className="ml-1" onClick={() => set("supplierId", "")}>
+                <Button
+                  variant="link"
+                  size="sm"
+                  className="ml-1"
+                  onClick={() => set("supplierId", "")}
+                >
                   <Link2Off /> {t("review.supplierMatch.unlink")}
                 </Button>
               ) : null}
@@ -350,7 +380,9 @@ export function ReviewForm({
               {t("review.supplierMatch.suggestion", { name: supplierSuggestion.supplier.name })}
             </Callout>
           ) : editable && values.supplierName ? (
-            <p className="text-[13px] text-muted-foreground">{t("review.supplierMatch.createOnValidate")}</p>
+            <p className="text-muted-foreground text-[13px]">
+              {t("review.supplierMatch.createOnValidate")}
+            </p>
           ) : null}
         </div>
       </Section>
@@ -386,7 +418,12 @@ export function ReviewForm({
               aria-invalid={Boolean(fieldIssue("documentNumber"))}
             />
           </Field>
-          <Field label={t("review.fields.issueDate")} htmlFor="issueDate" aside={aiBadge("issueDate")} error={errorText("issueDate")}>
+          <Field
+            label={t("review.fields.issueDate")}
+            htmlFor="issueDate"
+            aside={aiBadge("issueDate")}
+            error={errorText("issueDate")}
+          >
             <Input
               id="issueDate"
               type="date"
@@ -396,8 +433,19 @@ export function ReviewForm({
               aria-invalid={Boolean(fieldIssue("issueDate"))}
             />
           </Field>
-          <Field label={t("review.fields.dueDate")} htmlFor="dueDate" aside={aiBadge("dueDate")} error={errorText("dueDate")}>
-            <Input id="dueDate" type="date" value={values.dueDate} onChange={(e) => set("dueDate", e.target.value)} disabled={!editable} />
+          <Field
+            label={t("review.fields.dueDate")}
+            htmlFor="dueDate"
+            aside={aiBadge("dueDate")}
+            error={errorText("dueDate")}
+          >
+            <Input
+              id="dueDate"
+              type="date"
+              value={values.dueDate}
+              onChange={(e) => set("dueDate", e.target.value)}
+              disabled={!editable}
+            />
           </Field>
         </div>
       </Section>
@@ -405,7 +453,13 @@ export function ReviewForm({
       <Section title={t("review.amountsSection")}>
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
           {(["subtotal", "taxTotal", "total"] as const).map((key) => (
-            <Field key={key} label={t(`review.fields.${key}`)} htmlFor={key} aside={aiBadge(key)} error={errorText(key)}>
+            <Field
+              key={key}
+              label={t(`review.fields.${key}`)}
+              htmlFor={key}
+              aside={aiBadge(key)}
+              error={errorText(key)}
+            >
               <Input
                 id={key}
                 value={values[key]}
@@ -417,7 +471,11 @@ export function ReviewForm({
               />
             </Field>
           ))}
-          <Field label={t("review.fields.currency")} htmlFor="currency" error={errorText("currency")}>
+          <Field
+            label={t("review.fields.currency")}
+            htmlFor="currency"
+            error={errorText("currency")}
+          >
             <Input
               id="currency"
               value={values.currency}
@@ -436,9 +494,18 @@ export function ReviewForm({
           <Field
             label={t("review.fields.category")}
             htmlFor="categoryId"
-            hint={suggestedCategory && values.categoryId !== suggestedCategory.id ? t("review.categorySuggested", { name: suggestedCategory.name }) : undefined}
+            hint={
+              suggestedCategory && values.categoryId !== suggestedCategory.id
+                ? t("review.categorySuggested", { name: suggestedCategory.name })
+                : undefined
+            }
           >
-            <Select id="categoryId" value={values.categoryId} onChange={(e) => set("categoryId", e.target.value)} disabled={!editable}>
+            <Select
+              id="categoryId"
+              value={values.categoryId}
+              onChange={(e) => set("categoryId", e.target.value)}
+              disabled={!editable}
+            >
               <option value="">{t("common.none")}</option>
               {categories.map((c) => (
                 <option key={c.id} value={c.id}>
@@ -462,7 +529,14 @@ export function ReviewForm({
       <Section title={t("review.paymentSection")}>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <Field label={t("review.fields.iban")} htmlFor="iban" aside={aiBadge("iban")}>
-            <Input id="iban" value={values.iban} onChange={(e) => set("iban", e.target.value)} disabled={!editable} maxLength={50} className="tabular" />
+            <Input
+              id="iban"
+              value={values.iban}
+              onChange={(e) => set("iban", e.target.value)}
+              disabled={!editable}
+              maxLength={50}
+              className="tabular"
+            />
           </Field>
           <Field label={t("review.fields.paymentReference")} htmlFor="paymentReference">
             <Input
@@ -474,7 +548,14 @@ export function ReviewForm({
             />
           </Field>
           <Field label={t("review.fields.notes")} htmlFor="notes" className="sm:col-span-2">
-            <Textarea id="notes" value={values.notes} onChange={(e) => set("notes", e.target.value)} disabled={!editable} maxLength={4000} rows={2} />
+            <Textarea
+              id="notes"
+              value={values.notes}
+              onChange={(e) => set("notes", e.target.value)}
+              disabled={!editable}
+              maxLength={4000}
+              rows={2}
+            />
           </Field>
         </div>
       </Section>
@@ -491,12 +572,20 @@ export function ReviewForm({
       </Section>
 
       {editable ? (
-        <div className="sticky bottom-0 z-10 -mx-1 flex flex-wrap items-center justify-end gap-2 border-t border-border bg-background/95 px-1 py-3 backdrop-blur">
-          {dirty ? <Badge tone="warning" className="mr-auto">{t("review.unsavedChanges")}</Badge> : null}
+        <div className="border-border bg-background/95 sticky bottom-0 z-10 -mx-1 flex flex-wrap items-center justify-end gap-2 border-t px-1 py-3 backdrop-blur">
+          {dirty ? (
+            <Badge tone="warning" className="mr-auto">
+              {t("review.unsavedChanges")}
+            </Badge>
+          ) : null}
           <Button type="submit" variant="secondary" disabled={pending}>
             <Save /> {t("review.saveDraft")}
           </Button>
-          <Button onClick={() => submit("validate")} disabled={pending} data-testid="validate-button">
+          <Button
+            onClick={() => submit("validate")}
+            disabled={pending}
+            data-testid="validate-button"
+          >
             <CheckCircle2 /> {pending ? t("review.validating") : t("review.validate")}
           </Button>
         </div>
@@ -506,10 +595,18 @@ export function ReviewForm({
   );
 }
 
-function Section({ title, icon, children }: { title: string; icon?: ReactNode; children: ReactNode }) {
+function Section({
+  title,
+  icon,
+  children,
+}: {
+  title: string;
+  icon?: ReactNode;
+  children: ReactNode;
+}) {
   return (
-    <section className="rounded-lg border border-border bg-surface">
-      <h2 className="flex items-center gap-2 border-b border-border px-4 py-2.5 text-[13px] font-semibold">
+    <section className="border-border bg-surface rounded-lg border">
+      <h2 className="border-border flex items-center gap-2 border-b px-4 py-2.5 text-[13px] font-semibold">
         {icon}
         {title}
       </h2>

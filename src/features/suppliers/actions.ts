@@ -27,7 +27,10 @@ const supplierSchema = z.object({
     .optional()
     .transform((v) => (v ? v : null))
     .refine((v) => v === null || /^[A-Z]{2}$/.test(v), "invalid_country"),
-  email: optional(320).refine((v) => v === null || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v), "auth.invalidEmail"),
+  email: optional(320).refine(
+    (v) => v === null || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v),
+    "auth.invalidEmail",
+  ),
   phone: optional(50),
   address: optional(500),
   iban: optional(50).transform((v) => (v ? v.replace(/\s+/g, "").toUpperCase() : null)),
@@ -41,9 +44,17 @@ const supplierSchema = z.object({
 
 export type SupplierFormState = { error?: string; success?: string; id?: string } | undefined;
 
-export async function saveSupplierAction(_prev: SupplierFormState, formData: FormData): Promise<SupplierFormState> {
+export async function saveSupplierAction(
+  _prev: SupplierFormState,
+  formData: FormData,
+): Promise<SupplierFormState> {
   const parsed = supplierSchema.safeParse(Object.fromEntries(formData));
-  if (!parsed.success) return { error: parsed.error.issues[0]?.message.includes(".") ? parsed.error.issues[0].message : "errors.invalid_input" };
+  if (!parsed.success)
+    return {
+      error: parsed.error.issues[0]?.message.includes(".")
+        ? parsed.error.issues[0].message
+        : "errors.invalid_input",
+    };
   const input = parsed.data;
   const ctx = await requireTenantContext(input.tenant);
   if (!can.manageSuppliers(ctx.role)) return { error: "errors.forbidden" };
@@ -66,15 +77,28 @@ export async function saveSupplierAction(_prev: SupplierFormState, formData: For
   if (input.id) {
     const { data: before } = await supabase
       .from("suppliers")
-      .select("name, legal_name, tax_id, tax_country, email, phone, address, iban, notes, default_category_id")
+      .select(
+        "name, legal_name, tax_id, tax_country, email, phone, address, iban, notes, default_category_id",
+      )
       .eq("id", input.id)
       .eq("organization_id", orgId)
       .maybeSingle();
     if (!before) return { error: "errors.not_found" };
-    const { error } = await supabase.from("suppliers").update(values).eq("id", input.id).eq("organization_id", orgId);
+    const { error } = await supabase
+      .from("suppliers")
+      .update(values)
+      .eq("id", input.id)
+      .eq("organization_id", orgId);
     if (error) {
       logger.warn("supplier_update_failed", { code: error.code });
-      return { error: error.code === "23505" ? "suppliers.duplicateTaxId" : error.code === "23503" ? "errors.invalid_input" : "errors.internal" };
+      return {
+        error:
+          error.code === "23505"
+            ? "suppliers.duplicateTaxId"
+            : error.code === "23503"
+              ? "errors.invalid_input"
+              : "errors.internal",
+      };
     }
     const diff = diffValues(before, values);
     if (diff) {

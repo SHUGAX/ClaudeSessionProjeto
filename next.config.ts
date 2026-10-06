@@ -10,7 +10,8 @@ const supabaseOrigin = (() => {
   }
 })();
 
-const rootHost = (process.env.NEXT_PUBLIC_ROOT_DOMAIN ?? "localhost:3000").split(":")[0] ?? "localhost";
+const rootHost =
+  (process.env.NEXT_PUBLIC_ROOT_DOMAIN ?? "localhost:3000").split(":")[0] ?? "localhost";
 // Forms may post/redirect across tenant subdomains of the root domain only.
 const formTargets = `'self' https://*.${rootHost} https://${rootHost}${isDev ? ` http://*.${rootHost}:* http://${rootHost}:*` : ""}`;
 
@@ -39,7 +40,9 @@ const securityHeaders = [
   { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
   { key: "Permissions-Policy", value: "camera=(self), microphone=(), geolocation=(), payment=()" },
   { key: "Cross-Origin-Opener-Policy", value: "same-origin" },
-  ...(isDev ? [] : [{ key: "Strict-Transport-Security", value: "max-age=63072000; includeSubDomains" }]),
+  ...(isDev
+    ? []
+    : [{ key: "Strict-Transport-Security", value: "max-age=63072000; includeSubDomains" }]),
 ];
 
 const nextConfig: NextConfig = {

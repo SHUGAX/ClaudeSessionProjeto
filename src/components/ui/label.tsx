@@ -2,7 +2,7 @@ import type { LabelHTMLAttributes, ReactNode } from "react";
 import { cn } from "@/lib/utils";
 
 export function Label({ className, ...props }: LabelHTMLAttributes<HTMLLabelElement>) {
-  return <label className={cn("text-[13px] font-medium text-foreground", className)} {...props} />;
+  return <label className={cn("text-foreground text-[13px] font-medium", className)} {...props} />;
 }
 
 export function Field({
@@ -30,11 +30,11 @@ export function Field({
       </div>
       {children}
       {error ? (
-        <p id={`${htmlFor}-error`} className="text-xs text-danger" role="alert">
+        <p id={`${htmlFor}-error`} className="text-danger text-xs" role="alert">
           {error}
         </p>
       ) : hint ? (
-        <p id={`${htmlFor}-hint`} className="text-xs text-muted-foreground">
+        <p id={`${htmlFor}-hint`} className="text-muted-foreground text-xs">
           {hint}
         </p>
       ) : null}

@@ -5,12 +5,16 @@
  *  - absolute http(s) URLs whose host is the root domain or one of its subdomains
  * Returns null when the target is not safe.
  */
-export function safeRedirectTarget(target: string | null | undefined, rootDomain: string): string | null {
+export function safeRedirectTarget(
+  target: string | null | undefined,
+  rootDomain: string,
+): string | null {
   if (!target || target.length > 2048) return null;
   const value = target.trim();
 
   if (value.startsWith("/")) {
-    if (value.startsWith("//") || value.startsWith("/\\") || /[\u0000-\u001f]/.test(value)) return null;
+    if (value.startsWith("//") || value.startsWith("/\\") || /[\u0000-\u001f]/.test(value))
+      return null;
     return value;
   }
 

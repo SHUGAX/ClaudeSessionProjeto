@@ -1,6 +1,15 @@
 "use client";
 
-import { Copy, MailPlus, MoreHorizontal, RotateCw, UserX, UserCheck, Trash2, XCircle } from "lucide-react";
+import {
+  Copy,
+  MailPlus,
+  MoreHorizontal,
+  RotateCw,
+  UserX,
+  UserCheck,
+  Trash2,
+  XCircle,
+} from "lucide-react";
 import { useActionState, useEffect, useState, useTransition } from "react";
 import { useTenant } from "@/components/tenant/tenant-provider";
 import { Badge } from "@/components/ui/badge";
@@ -38,7 +47,13 @@ function InviteLink({ link }: { link: string }) {
     <Callout tone="info">
       <p className="mb-2">{t("users.inviteLink")}</p>
       <div className="flex gap-2">
-        <Input value={link} readOnly className="font-mono text-xs" onFocus={(e) => e.currentTarget.select()} aria-label="URL" />
+        <Input
+          value={link}
+          readOnly
+          className="font-mono text-xs"
+          onFocus={(e) => e.currentTarget.select()}
+          aria-label="URL"
+        />
         <Button
           variant="secondary"
           size="sm"
@@ -73,7 +88,11 @@ export function InviteUserDialog({ roles }: { roles: MemberRole[] }) {
           <MailPlus /> {t("users.invite")}
         </Button>
       </DialogTrigger>
-      <DialogContent title={t("users.inviteTitle")} description={t("users.inviteBody")} closeLabel={t("common.close")}>
+      <DialogContent
+        title={t("users.inviteTitle")}
+        description={t("users.inviteBody")}
+        closeLabel={t("common.close")}
+      >
         {state?.ok && state.link ? (
           <div className="flex flex-col gap-4">
             <Callout tone="success">{t("users.inviteSent", { email: state.email ?? "" })}</Callout>
@@ -84,7 +103,14 @@ export function InviteUserDialog({ roles }: { roles: MemberRole[] }) {
             <input type="hidden" name="tenant" value={slug} />
             <FormMessage error={state && !state.ok ? state.error : undefined} />
             <Field label={t("common.email")} htmlFor="invite-email">
-              <Input id="invite-email" name="email" type="email" required maxLength={320} autoComplete="off" />
+              <Input
+                id="invite-email"
+                name="email"
+                type="email"
+                required
+                maxLength={320}
+                autoComplete="off"
+              />
             </Field>
             <Field label={t("users.role")} htmlFor="invite-role">
               <Select id="invite-role" name="role" defaultValue="member">
@@ -112,7 +138,8 @@ function useResult() {
     startTransition(async () => {
       const result = await fn();
       if (!result.ok) toast(t.dynamic(result.error ?? "errors.body"), "error");
-      else if (result.success) toast(t.dynamic(result.success, undefined, { email: result.email ?? "" }));
+      else if (result.success)
+        toast(t.dynamic(result.success, undefined, { email: result.email ?? "" }));
     });
   return { pending, run };
 }
@@ -150,17 +177,26 @@ export function MemberControls({
       </Select>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="ghost" size="icon-sm" aria-label={t("common.actions")} disabled={pending}>
+          <Button
+            variant="ghost"
+            size="icon-sm"
+            aria-label={t("common.actions")}
+            disabled={pending}
+          >
             <MoreHorizontal />
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent>
           {status === "active" ? (
-            <DropdownMenuItem onSelect={() => run(() => setMemberStatusAction(slug, memberId, "disabled"))}>
+            <DropdownMenuItem
+              onSelect={() => run(() => setMemberStatusAction(slug, memberId, "disabled"))}
+            >
               <UserX /> {t("users.deactivate")}
             </DropdownMenuItem>
           ) : (
-            <DropdownMenuItem onSelect={() => run(() => setMemberStatusAction(slug, memberId, "active"))}>
+            <DropdownMenuItem
+              onSelect={() => run(() => setMemberStatusAction(slug, memberId, "active"))}
+            >
               <UserCheck /> {t("users.reactivate")}
             </DropdownMenuItem>
           )}
@@ -168,7 +204,8 @@ export function MemberControls({
           <DropdownMenuItem
             className="text-danger"
             onSelect={() => {
-              if (window.confirm(t("users.removeConfirm", { name }))) run(() => removeMemberAction(slug, memberId));
+              if (window.confirm(t("users.removeConfirm", { name })))
+                run(() => removeMemberAction(slug, memberId));
             }}
           >
             <Trash2 /> {t("common.remove")}
@@ -185,10 +222,20 @@ export function InvitationControls({ invitationId }: { invitationId: string }) {
   const { pending, run } = useResult();
   return (
     <div className="flex justify-end gap-1">
-      <Button variant="ghost" size="sm" disabled={pending} onClick={() => run(() => resendInvitationAction(slug, invitationId))}>
+      <Button
+        variant="ghost"
+        size="sm"
+        disabled={pending}
+        onClick={() => run(() => resendInvitationAction(slug, invitationId))}
+      >
         <RotateCw /> {t("users.resend")}
       </Button>
-      <Button variant="ghost" size="sm" disabled={pending} onClick={() => run(() => revokeInvitationAction(slug, invitationId))}>
+      <Button
+        variant="ghost"
+        size="sm"
+        disabled={pending}
+        onClick={() => run(() => revokeInvitationAction(slug, invitationId))}
+      >
         <XCircle /> {t("users.revoke")}
       </Button>
     </div>
@@ -197,5 +244,9 @@ export function InvitationControls({ invitationId }: { invitationId: string }) {
 
 export function StatusBadge({ status }: { status: string }) {
   const { t } = useI18n();
-  return status === "active" ? <Badge tone="success">{t("users.active")}</Badge> : <Badge>{t("users.disabled")}</Badge>;
+  return status === "active" ? (
+    <Badge tone="success">{t("users.active")}</Badge>
+  ) : (
+    <Badge>{t("users.disabled")}</Badge>
+  );
 }

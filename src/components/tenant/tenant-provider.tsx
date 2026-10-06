@@ -16,7 +16,13 @@ interface TenantClientContext {
 
 const Ctx = createContext<TenantClientContext | null>(null);
 
-export function TenantProvider({ value, children }: { value: TenantClientContext; children: ReactNode }) {
+export function TenantProvider({
+  value,
+  children,
+}: {
+  value: TenantClientContext;
+  children: ReactNode;
+}) {
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }
 

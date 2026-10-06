@@ -18,9 +18,19 @@ const nullableString = (max: number) =>
     .transform((v) => v ?? null);
 
 /** Raw amounts may arrive as strings in various notations or as JSON numbers. */
-const rawAmount = z.union([z.string().max(50), z.number()]).nullable().optional().transform((v) => v ?? null);
+const rawAmount = z
+  .union([z.string().max(50), z.number()])
+  .nullable()
+  .optional()
+  .transform((v) => v ?? null);
 
-const confidence = z.number().min(0).max(1).nullable().optional().transform((v) => v ?? null);
+const confidence = z
+  .number()
+  .min(0)
+  .max(1)
+  .nullable()
+  .optional()
+  .transform((v) => v ?? null);
 
 export const rawExtractionSchema = z.object({
   document_type: z
@@ -82,7 +92,10 @@ export const rawExtractionSchema = z.object({
     })
     .nullable()
     .optional()
-    .transform((v) => v ?? { overall: null, supplier: null, amounts: null, dates: null, document_number: null }),
+    .transform(
+      (v) =>
+        v ?? { overall: null, supplier: null, amounts: null, dates: null, document_number: null },
+    ),
   warnings: z
     .array(z.string().max(500))
     .max(20)
@@ -97,7 +110,12 @@ export type RawExtraction = z.infer<typeof rawExtractionSchema>;
 export interface InvoiceExtraction {
   schemaVersion: string;
   documentType: RawExtraction["document_type"];
-  supplier: { name: string | null; taxId: string | null; address: string | null; email: string | null };
+  supplier: {
+    name: string | null;
+    taxId: string | null;
+    address: string | null;
+    email: string | null;
+  };
   customer: { name: string | null; taxId: string | null };
   documentNumber: string | null;
   issueDate: string | null;
@@ -129,7 +147,8 @@ export interface InvoiceExtraction {
 const str = { type: ["string", "null"] } as const;
 const amount = {
   type: ["string", "null"],
-  description: "Decimal number using '.' as decimal separator and no thousands separator, e.g. \"1234.56\". null if absent.",
+  description:
+    "Decimal number using '.' as decimal separator and no thousands separator, e.g. \"1234.56\". null if absent.",
 } as const;
 const conf = { type: ["number", "null"], minimum: 0, maximum: 1 } as const;
 
@@ -138,7 +157,15 @@ export const extractionJsonSchema = {
   properties: {
     document_type: {
       type: "string",
-      enum: ["invoice", "receipt", "credit_note", "quotation", "delivery_note", "contract", "other"],
+      enum: [
+        "invoice",
+        "receipt",
+        "credit_note",
+        "quotation",
+        "delivery_note",
+        "contract",
+        "other",
+      ],
     },
     supplier: {
       type: "object",
@@ -151,7 +178,10 @@ export const extractionJsonSchema = {
       description: "The RECIPIENT of the document (who is buying / being charged).",
       properties: { name: str, tax_id: str },
     },
-    document_number: { ...str, description: "Exactly as printed, preserving letters, spaces and slashes." },
+    document_number: {
+      ...str,
+      description: "Exactly as printed, preserving letters, spaces and slashes.",
+    },
     issue_date: { ...str, description: "YYYY-MM-DD" },
     due_date: { ...str, description: "YYYY-MM-DD" },
     currency: { ...str, description: "ISO 4217 code, e.g. EUR" },
@@ -173,7 +203,7 @@ export const extractionJsonSchema = {
           description: str,
           quantity: amount,
           unit_price: amount,
-          tax_rate: { ...amount, description: "VAT percentage, e.g. \"23\"" },
+          tax_rate: { ...amount, description: 'VAT percentage, e.g. "23"' },
           tax_amount: amount,
           line_total: amount,
         },
@@ -184,9 +214,24 @@ export const extractionJsonSchema = {
     purchase_order: str,
     confidence: {
       type: "object",
-      properties: { overall: conf, supplier: conf, amounts: conf, dates: conf, document_number: conf },
+      properties: {
+        overall: conf,
+        supplier: conf,
+        amounts: conf,
+        dates: conf,
+        document_number: conf,
+      },
     },
     warnings: { type: "array", items: { type: "string" } },
   },
-  required: ["document_type", "supplier", "document_number", "issue_date", "currency", "subtotal", "tax_total", "total"],
+  required: [
+    "document_type",
+    "supplier",
+    "document_number",
+    "issue_date",
+    "currency",
+    "subtotal",
+    "tax_total",
+    "total",
+  ],
 } as const;

@@ -9,11 +9,20 @@ import { centralUrl, tenantPath } from "@/lib/tenancy/urls";
 import { resolveTenant } from "@/lib/tenancy/context";
 import { isValidSlug } from "@/lib/tenancy/slug";
 
-export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}): Promise<Metadata> {
   const { slug } = await params;
   const { t } = await getI18n();
   const resolution = isValidSlug(slug) ? await resolveTenant(slug) : null;
-  const name = resolution && resolution.kind !== "not_found" ? (resolution.kind === "ok" ? resolution.context.organization.name : resolution.tenant.name) : null;
+  const name =
+    resolution && resolution.kind !== "not_found"
+      ? resolution.kind === "ok"
+        ? resolution.context.organization.name
+        : resolution.tenant.name
+      : null;
   return { title: name ? `${t("auth.loginTitle")} · ${name}` : t("auth.loginTitle") };
 }
 

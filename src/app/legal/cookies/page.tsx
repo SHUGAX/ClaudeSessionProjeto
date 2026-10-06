@@ -11,7 +11,10 @@ export default async function CookiesPage() {
   const { t } = await getI18n();
   return (
     <LegalPage title={t("legal.cookies")}>
-      <p>A aplicação utiliza apenas cookies estritamente necessários. Não são utilizados cookies de publicidade nem de análise de terceiros.</p>
+      <p>
+        A aplicação utiliza apenas cookies estritamente necessários. Não são utilizados cookies de
+        publicidade nem de análise de terceiros.
+      </p>
       <h2>Cookies utilizados</h2>
       <ul>
         <li>

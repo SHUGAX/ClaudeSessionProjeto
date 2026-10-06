@@ -63,7 +63,8 @@ class ResendEmailProvider implements EmailProvider {
 export function getEmailProvider(): EmailProvider {
   const env = serverEnv();
   if (env.EMAIL_PROVIDER === "resend") {
-    if (!env.RESEND_API_KEY) throw new Error("RESEND_API_KEY is required when EMAIL_PROVIDER=resend");
+    if (!env.RESEND_API_KEY)
+      throw new Error("RESEND_API_KEY is required when EMAIL_PROVIDER=resend");
     return new ResendEmailProvider(env.RESEND_API_KEY, env.EMAIL_FROM);
   }
   return new ConsoleEmailProvider();

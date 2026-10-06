@@ -39,25 +39,25 @@ e2e/                       Playwright + local Supabase test stack
 
 ## Key decisions
 
-| Decision | Rationale |
-|---|---|
-| **Membership model** (`organization_members`) instead of `company_id` on users | users can belong to several companies with different roles |
-| **RLS as primary isolation**, app checks as second layer | a bug in application code must not leak tenant data |
-| `organization_id` on **every** tenant table + composite FKs `(id, organization_id)` | uniform, index-friendly policies; impossible to link rows across tenants |
-| Service role **only server-side, after authorization**, for system writes | users cannot forge AI results, audit records or usage counters |
-| Integrity **triggers** for system fields and state machine | protects against mass assignment through the public Data API |
-| **Direct-to-storage signed uploads** + server verification | bypasses serverless body limits; server still validates real bytes and hash |
-| Fixed storage key `organizations/{org}/documents/{doc}/original.{ext}` | no user-controlled paths (no traversal); mirrors DB authorization |
-| AI behind `DocumentExtractionProvider` | swap Gemini for another provider without touching the app |
-| Amounts as **decimal strings** end-to-end, `NUMERIC` in Postgres, `decimal.js` | no floating point in money |
-| Business dates as `DATE` / `YYYY-MM-DD` strings | no timezone shifts |
-| Separate `status`, `processing_status`, `review_status` | lifecycle, technical processing and human review are different concerns |
-| Archive instead of delete | business documents have retention obligations |
-| Append-only `audit_logs`, `document_extractions`, `document_status_history` | traceability; retries never overwrite history |
-| Postgres-backed rate limiting | works across serverless instances |
-| Path routing for dev, subdomain routing for prod (env switch) | wildcard DNS is not always available locally |
-| No chart library; server-rendered bars | smaller bundles, accessible, no client JS |
-| pdf.js **legacy** build, worker served from `/public` | broad browser support, strict CSP (`worker-src 'self'`) |
+| Decision                                                                            | Rationale                                                                   |
+| ----------------------------------------------------------------------------------- | --------------------------------------------------------------------------- |
+| **Membership model** (`organization_members`) instead of `company_id` on users      | users can belong to several companies with different roles                  |
+| **RLS as primary isolation**, app checks as second layer                            | a bug in application code must not leak tenant data                         |
+| `organization_id` on **every** tenant table + composite FKs `(id, organization_id)` | uniform, index-friendly policies; impossible to link rows across tenants    |
+| Service role **only server-side, after authorization**, for system writes           | users cannot forge AI results, audit records or usage counters              |
+| Integrity **triggers** for system fields and state machine                          | protects against mass assignment through the public Data API                |
+| **Direct-to-storage signed uploads** + server verification                          | bypasses serverless body limits; server still validates real bytes and hash |
+| Fixed storage key `organizations/{org}/documents/{doc}/original.{ext}`              | no user-controlled paths (no traversal); mirrors DB authorization           |
+| AI behind `DocumentExtractionProvider`                                              | swap Gemini for another provider without touching the app                   |
+| Amounts as **decimal strings** end-to-end, `NUMERIC` in Postgres, `decimal.js`      | no floating point in money                                                  |
+| Business dates as `DATE` / `YYYY-MM-DD` strings                                     | no timezone shifts                                                          |
+| Separate `status`, `processing_status`, `review_status`                             | lifecycle, technical processing and human review are different concerns     |
+| Archive instead of delete                                                           | business documents have retention obligations                               |
+| Append-only `audit_logs`, `document_extractions`, `document_status_history`         | traceability; retries never overwrite history                               |
+| Postgres-backed rate limiting                                                       | works across serverless instances                                           |
+| Path routing for dev, subdomain routing for prod (env switch)                       | wildcard DNS is not always available locally                                |
+| No chart library; server-rendered bars                                              | smaller bundles, accessible, no client JS                                   |
+| pdf.js **legacy** build, worker served from `/public`                               | broad browser support, strict CSP (`worker-src 'self'`)                     |
 
 ## Request flow (tenant page)
 

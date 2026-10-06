@@ -5,7 +5,8 @@
 type Level = "debug" | "info" | "warn" | "error";
 const ORDER: Record<Level, number> = { debug: 10, info: 20, warn: 30, error: 40 };
 
-const SENSITIVE_KEYS = /pass(word)?|secret|token|key|authorization|cookie|raw_?response|content|iban/i;
+const SENSITIVE_KEYS =
+  /pass(word)?|secret|token|key|authorization|cookie|raw_?response|content|iban/i;
 
 function currentLevel(): Level {
   const value = process.env.LOG_LEVEL;

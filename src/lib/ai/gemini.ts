@@ -2,7 +2,11 @@ import "server-only";
 import { GoogleGenAI } from "@google/genai";
 import { logger } from "@/lib/observability/logger";
 import { normalizeExtraction } from "./normalize";
-import { INVOICE_PROMPT_VERSION, INVOICE_SYSTEM_INSTRUCTION, INVOICE_USER_PROMPT } from "./prompts/invoice";
+import {
+  INVOICE_PROMPT_VERSION,
+  INVOICE_SYSTEM_INSTRUCTION,
+  INVOICE_USER_PROMPT,
+} from "./prompts/invoice";
 import { EXTRACTION_SCHEMA_VERSION, extractionJsonSchema } from "./schema";
 import type { DocumentExtractionProvider, ExtractionInput, ExtractionResult } from "./types";
 
@@ -41,7 +45,12 @@ export class GeminiExtractionProvider implements DocumentExtractionProvider {
           {
             role: "user",
             parts: [
-              { inlineData: { mimeType: input.mimeType, data: Buffer.from(input.bytes).toString("base64") } },
+              {
+                inlineData: {
+                  mimeType: input.mimeType,
+                  data: Buffer.from(input.bytes).toString("base64"),
+                },
+              },
               { text: INVOICE_USER_PROMPT },
             ],
           },
@@ -60,7 +69,8 @@ export class GeminiExtractionProvider implements DocumentExtractionProvider {
         outputTokens: response.usageMetadata?.candidatesTokenCount,
       };
       if (!text) {
-        const reason = response.promptFeedback?.blockReason ?? response.candidates?.[0]?.finishReason ?? "empty";
+        const reason =
+          response.promptFeedback?.blockReason ?? response.candidates?.[0]?.finishReason ?? "empty";
         return {
           ok: false,
           ...base,
@@ -70,14 +80,22 @@ export class GeminiExtractionProvider implements DocumentExtractionProvider {
         };
       }
     } catch (error) {
-      const isTimeout = error instanceof Error && (error.name === "TimeoutError" || error.name === "AbortError");
+      const isTimeout =
+        error instanceof Error && (error.name === "TimeoutError" || error.name === "AbortError");
       const status = (error as { status?: number }).status;
-      logger.warn("ai_provider_error", { provider: this.name, documentId: input.documentId, status, timeout: isTimeout });
+      logger.warn("ai_provider_error", {
+        provider: this.name,
+        documentId: input.documentId,
+        status,
+        timeout: isTimeout,
+      });
       return {
         ok: false,
         ...base,
         errorCode: isTimeout ? "timeout" : "provider_unavailable",
-        errorMessage: isTimeout ? "The AI provider timed out" : `The AI provider request failed${status ? ` (HTTP ${status})` : ""}`,
+        errorMessage: isTimeout
+          ? "The AI provider timed out"
+          : `The AI provider request failed${status ? ` (HTTP ${status})` : ""}`,
         durationMs: Date.now() - started,
       };
     }
@@ -106,6 +124,13 @@ export class GeminiExtractionProvider implements DocumentExtractionProvider {
         durationMs: Date.now() - started,
       };
     }
-    return { ok: true, ...base, raw, data: normalized.data, durationMs: Date.now() - started, usage };
+    return {
+      ok: true,
+      ...base,
+      raw,
+      data: normalized.data,
+      durationMs: Date.now() - started,
+      usage,
+    };
   }
 }

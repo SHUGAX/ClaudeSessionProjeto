@@ -4,13 +4,19 @@ import { normalizeTaxId } from "@/lib/validation/tax-id";
 import { isValidIban } from "@/lib/validation/iban";
 
 describe("Portuguese NIF", () => {
-  it.each(["123456789", "PT123456789", "501442600", "500100144", "980245974"])("accepts valid NIF %s", (nif) => {
-    expect(isValidPortugueseNif(nif)).toBe(true);
-  });
+  it.each(["123456789", "PT123456789", "501442600", "500100144", "980245974"])(
+    "accepts valid NIF %s",
+    (nif) => {
+      expect(isValidPortugueseNif(nif)).toBe(true);
+    },
+  );
 
-  it.each(["123456788", "12345678", "1234567890", "abcdefghi", "400000000"])("rejects invalid NIF %s", (nif) => {
-    expect(isValidPortugueseNif(nif)).toBe(false);
-  });
+  it.each(["123456788", "12345678", "1234567890", "abcdefghi", "400000000"])(
+    "rejects invalid NIF %s",
+    (nif) => {
+      expect(isValidPortugueseNif(nif)).toBe(false);
+    },
+  );
 
   it("detects NIF-like values regardless of formatting", () => {
     expect(looksLikePortugueseNif("PT 123 456 789")).toBe(true);

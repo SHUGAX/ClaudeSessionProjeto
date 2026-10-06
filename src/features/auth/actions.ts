@@ -7,10 +7,7 @@ import { getSessionUser } from "@/lib/auth/session";
 import { publicEnv } from "@/lib/env";
 import { serverEnv } from "@/lib/env.server";
 import { isLocale, LOCALE_COOKIE } from "@/lib/i18n/config";
-import {
-  completeInvitation,
-  findValidInvitation,
-} from "@/lib/invitations";
+import { completeInvitation, findValidInvitation } from "@/lib/invitations";
 import { AppError } from "@/lib/observability/errors";
 import { logger } from "@/lib/observability/logger";
 import { sha256Hex } from "@/lib/security/crypto";
@@ -25,7 +22,11 @@ import { emailSchema, loginSchema, passwordPairSchema, type FormState } from "./
 
 async function applyPreferredLocale(userId: string) {
   const supabase = await createSupabaseServerClient();
-  const { data } = await supabase.from("profiles").select("preferred_language").eq("id", userId).maybeSingle();
+  const { data } = await supabase
+    .from("profiles")
+    .select("preferred_language")
+    .eq("id", userId)
+    .maybeSingle();
   if (data && isLocale(data.preferred_language)) {
     (await cookies()).set(LOCALE_COOKIE, data.preferred_language, {
       path: "/",
@@ -74,12 +75,19 @@ export async function loginAction(_prev: FormState, formData: FormData): Promise
   redirect(destination);
 }
 
-export async function forgotPasswordAction(_prev: FormState, formData: FormData): Promise<FormState> {
+export async function forgotPasswordAction(
+  _prev: FormState,
+  formData: FormData,
+): Promise<FormState> {
   const parsed = emailSchema.safeParse(formData.get("email"));
   if (!parsed.success) return { error: "auth.invalidEmail" };
 
   const ip = await clientIpHash();
-  const allowed = await rateLimit(`pwreset:${ip}`, RATE_LIMITS.passwordReset.max, RATE_LIMITS.passwordReset.windowSeconds);
+  const allowed = await rateLimit(
+    `pwreset:${ip}`,
+    RATE_LIMITS.passwordReset.max,
+    RATE_LIMITS.passwordReset.windowSeconds,
+  );
   if (!allowed) return { error: "auth.rateLimited" };
 
   const supabase = await createSupabaseServerClient();
@@ -91,7 +99,10 @@ export async function forgotPasswordAction(_prev: FormState, formData: FormData)
   return { success: "auth.resetLinkSent" };
 }
 
-export async function resetPasswordAction(_prev: FormState, formData: FormData): Promise<FormState> {
+export async function resetPasswordAction(
+  _prev: FormState,
+  formData: FormData,
+): Promise<FormState> {
   const parsed = passwordPairSchema.safeParse({
     password: formData.get("password"),
     confirm: formData.get("confirm"),
@@ -105,31 +116,50 @@ export async function resetPasswordAction(_prev: FormState, formData: FormData):
   const { error } = await supabase.auth.updateUser({ password: parsed.data.password });
   if (error) {
     logger.warn("password_update_failed", { code: error.code });
-    return { error: error.code === "weak_password" ? "auth.passwordNeedsLettersDigits" : "auth.linkInvalid" };
+    return {
+      error:
+        error.code === "weak_password" ? "auth.passwordNeedsLettersDigits" : "auth.linkInvalid",
+    };
   }
   redirect(await postLoginDestination(null));
 }
 
 /** Accepts an invitation for a NEW account (sets the user's own password). */
-export async function acceptInvitationNewUserAction(_prev: FormState, formData: FormData): Promise<FormState> {
+export async function acceptInvitationNewUserAction(
+  _prev: FormState,
+  formData: FormData,
+): Promise<FormState> {
   const token = String(formData.get("token") ?? "");
   const ip = await clientIpHash();
-  if (!(await rateLimit(`invite:${ip}`, RATE_LIMITS.invitationAccept.max, RATE_LIMITS.invitationAccept.windowSeconds))) {
+  if (
+    !(await rateLimit(
+      `invite:${ip}`,
+      RATE_LIMITS.invitationAccept.max,
+      RATE_LIMITS.invitationAccept.windowSeconds,
+    ))
+  ) {
     return { error: "auth.rateLimited" };
   }
 
   const invitation = await findValidInvitation(token);
   if (!invitation) return { error: "invite.invalid" };
 
-  const fullName = String(formData.get("fullName") ?? "").trim().slice(0, 200);
+  const fullName = String(formData.get("fullName") ?? "")
+    .trim()
+    .slice(0, 200);
   const passwords = passwordPairSchema.safeParse({
     password: formData.get("password"),
     confirm: formData.get("confirm"),
   });
-  if (!passwords.success) return { error: passwords.error.issues[0]?.message ?? "auth.passwordTooShort" };
+  if (!passwords.success)
+    return { error: passwords.error.issues[0]?.message ?? "auth.passwordTooShort" };
 
   const admin = createSupabaseAdminClient();
-  const { data: existing } = await admin.from("profiles").select("id").eq("email", invitation.email).maybeSingle();
+  const { data: existing } = await admin
+    .from("profiles")
+    .select("id")
+    .eq("email", invitation.email)
+    .maybeSingle();
   if (existing) return { error: "invite.existingAccount" };
 
   const locale = (await cookies()).get(LOCALE_COOKIE)?.value;
@@ -138,27 +168,42 @@ export async function acceptInvitationNewUserAction(_prev: FormState, formData: 
     email: invitation.email,
     password: passwords.data.password,
     email_confirm: true,
-    user_metadata: { full_name: fullName || null, preferred_language: isLocale(locale) ? locale : "pt-PT" },
+    user_metadata: {
+      full_name: fullName || null,
+      preferred_language: isLocale(locale) ? locale : "pt-PT",
+    },
   });
   if (createError || !created.user) {
     logger.warn("invite_user_create_failed", { code: createError?.code });
-    return { error: createError?.code === "weak_password" ? "auth.passwordNeedsLettersDigits" : "errors.internal" };
+    return {
+      error:
+        createError?.code === "weak_password"
+          ? "auth.passwordNeedsLettersDigits"
+          : "errors.internal",
+    };
   }
 
   try {
     await completeInvitation(invitation, created.user.id);
   } catch (error) {
-    if (error instanceof AppError && error.code === "limit_reached") return { error: "invite.limitReached" };
+    if (error instanceof AppError && error.code === "limit_reached")
+      return { error: "invite.limitReached" };
     throw error;
   }
 
   const supabase = await createSupabaseServerClient();
-  await supabase.auth.signInWithPassword({ email: invitation.email, password: passwords.data.password });
+  await supabase.auth.signInWithPassword({
+    email: invitation.email,
+    password: passwords.data.password,
+  });
   redirect(tenantUrl(invitation.organizationSlug, "/", serverEnv().APP_URL));
 }
 
 /** Accepts an invitation with the currently signed-in account. */
-export async function acceptInvitationExistingUserAction(_prev: FormState, formData: FormData): Promise<FormState> {
+export async function acceptInvitationExistingUserAction(
+  _prev: FormState,
+  formData: FormData,
+): Promise<FormState> {
   const token = String(formData.get("token") ?? "");
   const invitation = await findValidInvitation(token);
   if (!invitation) return { error: "invite.invalid" };
@@ -168,7 +213,8 @@ export async function acceptInvitationExistingUserAction(_prev: FormState, formD
   try {
     await completeInvitation(invitation, user.id);
   } catch (error) {
-    if (error instanceof AppError && error.code === "limit_reached") return { error: "invite.limitReached" };
+    if (error instanceof AppError && error.code === "limit_reached")
+      return { error: "invite.limitReached" };
     throw error;
   }
   redirect(tenantUrl(invitation.organizationSlug, "/", serverEnv().APP_URL));
@@ -179,4 +225,3 @@ export async function signOutAction(): Promise<void> {
   await supabase.auth.signOut();
   redirect("/login");
 }
-

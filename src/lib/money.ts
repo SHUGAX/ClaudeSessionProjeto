@@ -7,7 +7,17 @@ import Decimal from "decimal.js";
 Decimal.set({ precision: 40, rounding: Decimal.ROUND_HALF_UP });
 
 /** ISO 4217 minor units for common currencies (default 2). */
-const MINOR_UNITS: Record<string, number> = { JPY: 0, KRW: 0, CLP: 0, ISK: 0, BHD: 3, KWD: 3, OMR: 3, TND: 3, JOD: 3 };
+const MINOR_UNITS: Record<string, number> = {
+  JPY: 0,
+  KRW: 0,
+  CLP: 0,
+  ISK: 0,
+  BHD: 3,
+  KWD: 3,
+  OMR: 3,
+  TND: 3,
+  JOD: 3,
+};
 
 export function currencyMinorUnits(currency: string): number {
   return MINOR_UNITS[currency.toUpperCase()] ?? 2;
@@ -74,7 +84,9 @@ export function toDecimal(value: string | number | null | undefined): Decimal | 
 
 /** Rounds to the currency's minor units and returns a canonical string. */
 export function roundMoney(value: Decimal | string, currency = "EUR"): string {
-  return new Decimal(value).toDecimalPlaces(currencyMinorUnits(currency)).toFixed(currencyMinorUnits(currency));
+  return new Decimal(value)
+    .toDecimalPlaces(currencyMinorUnits(currency))
+    .toFixed(currencyMinorUnits(currency));
 }
 
 export function sumAmounts(values: ReadonlyArray<string | null | undefined>): Decimal {

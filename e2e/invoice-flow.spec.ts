@@ -12,13 +12,19 @@ test("upload → AI extraction → review → correct → validate → listed, a
     number,
     issueDate: "2026-09-15",
     dueDate: "2026-10-15",
-    lines: [{ description: "Consultoria (sintética)", quantity: "2", unitPrice: "150.00", taxRate: "23" }],
+    lines: [
+      { description: "Consultoria (sintética)", quantity: "2", unitPrice: "150.00", taxRate: "23" },
+    ],
   });
 
   await login(page, "ana@empresa-a.test");
   await expectOnTenant(page, "empresa-a");
   await page.goto("/t/empresa-a/upload");
-  await page.getByTestId("file-input").setInputFiles({ name: "fatura-e2e.pdf", mimeType: "application/pdf", buffer: Buffer.from(pdf) });
+  await page.getByTestId("file-input").setInputFiles({
+    name: "fatura-e2e.pdf",
+    mimeType: "application/pdf",
+    buffer: Buffer.from(pdf),
+  });
 
   const item = page.getByTestId("upload-item").first();
   await expect(item.getByText("Pronto para revisão")).toBeVisible({ timeout: 60_000 });
@@ -56,12 +62,21 @@ test("upload → AI extraction → review → correct → validate → listed, a
     return rows.map((r) => r.action as string);
   });
   expect(actions).toEqual(
-    expect.arrayContaining(["document.uploaded", "document.processing_started", "document.extracted", "document.updated", "document.validated"]),
+    expect.arrayContaining([
+      "document.uploaded",
+      "document.processing_started",
+      "document.extracted",
+      "document.updated",
+      "document.validated",
+    ]),
   );
 
   // Original is stored privately: no public access to the storage object.
   const storagePath = await withDb(async (db) => {
-    const { rows } = await db.query("select storage_path from documents where document_number = $1", [number]);
+    const { rows } = await db.query(
+      "select storage_path from documents where document_number = $1",
+      [number],
+    );
     return rows[0].storage_path as string;
   });
   const publicUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/documents/${storagePath}`;
@@ -86,7 +101,9 @@ test("AI failure keeps the original and allows a retry", async ({ page }) => {
   await login(page, "ana@empresa-a.test");
   await expectOnTenant(page, "empresa-a");
   await page.goto("/t/empresa-a/upload");
-  await page.getByTestId("file-input").setInputFiles({ name: "falha.pdf", mimeType: "application/pdf", buffer: Buffer.from(pdf) });
+  await page
+    .getByTestId("file-input")
+    .setInputFiles({ name: "falha.pdf", mimeType: "application/pdf", buffer: Buffer.from(pdf) });
   const item = page.getByTestId("upload-item").first();
   await expect(item.getByText(/extração falhou/)).toBeVisible({ timeout: 60_000 });
   await item.getByRole("link", { name: "Rever" }).click();
@@ -99,8 +116,12 @@ test("rejects files whose content is not an allowed type", async ({ page }) => {
   await login(page, "ana@empresa-a.test");
   await expectOnTenant(page, "empresa-a");
   await page.goto("/t/empresa-a/upload");
-  await page
-    .getByTestId("file-input")
-    .setInputFiles({ name: "falso.pdf", mimeType: "application/pdf", buffer: Buffer.from("<html><script>alert(1)</script></html>") });
-  await expect(page.getByTestId("upload-item").first().getByText("Tipo de ficheiro não suportado.")).toBeVisible({ timeout: 30_000 });
+  await page.getByTestId("file-input").setInputFiles({
+    name: "falso.pdf",
+    mimeType: "application/pdf",
+    buffer: Buffer.from("<html><script>alert(1)</script></html>"),
+  });
+  await expect(
+    page.getByTestId("upload-item").first().getByText("Tipo de ficheiro não suportado."),
+  ).toBeVisible({ timeout: 30_000 });
 });

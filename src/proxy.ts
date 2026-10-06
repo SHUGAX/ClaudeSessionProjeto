@@ -17,10 +17,19 @@ import { resolveHost } from "@/lib/tenancy/host";
 const GLOBAL_PREFIXES = ["/api", "/auth", "/legal", "/invite", "/_next"];
 const GLOBAL_FILES = new Set(["/pdf.worker.min.mjs", "/favicon.ico", "/icon.svg", "/robots.txt"]);
 // Central account pages that also work on the admin host.
-const CENTRAL_PAGES = ["/login", "/forgot-password", "/reset-password", "/select-organization", "/no-access"];
+const CENTRAL_PAGES = [
+  "/login",
+  "/forgot-password",
+  "/reset-password",
+  "/select-organization",
+  "/no-access",
+];
 
 function isGlobalPath(pathname: string): boolean {
-  return GLOBAL_FILES.has(pathname) || GLOBAL_PREFIXES.some((p) => pathname === p || pathname.startsWith(`${p}/`));
+  return (
+    GLOBAL_FILES.has(pathname) ||
+    GLOBAL_PREFIXES.some((p) => pathname === p || pathname.startsWith(`${p}/`))
+  );
 }
 
 export async function proxy(request: NextRequest) {
@@ -29,7 +38,8 @@ export async function proxy(request: NextRequest) {
   const url = request.nextUrl.clone();
   const { pathname } = url;
   const host = request.headers.get("host");
-  const hostContext = routing === "subdomain" ? resolveHost(host, rootDomain) : { kind: "central" as const };
+  const hostContext =
+    routing === "subdomain" ? resolveHost(host, rootDomain) : { kind: "central" as const };
 
   let rewriteTo: URL | null = null;
   let redirectTo: URL | null = null;
@@ -42,7 +52,10 @@ export async function proxy(request: NextRequest) {
     if (pathname.startsWith("/t/") || pathname.startsWith("/admin")) {
       return new NextResponse("Not found", { status: 404 });
     }
-    rewriteTo = new URL(`/t/${hostContext.slug}${pathname === "/" ? "" : pathname}${url.search}`, request.url);
+    rewriteTo = new URL(
+      `/t/${hostContext.slug}${pathname === "/" ? "" : pathname}${url.search}`,
+      request.url,
+    );
   } else if (
     hostContext.kind === "admin" &&
     !isGlobalPath(pathname) &&
@@ -50,7 +63,11 @@ export async function proxy(request: NextRequest) {
     !CENTRAL_PAGES.includes(pathname)
   ) {
     rewriteTo = new URL(`/admin${pathname === "/" ? "" : pathname}${url.search}`, request.url);
-  } else if (routing === "subdomain" && hostContext.kind === "central" && pathname.startsWith("/t/")) {
+  } else if (
+    routing === "subdomain" &&
+    hostContext.kind === "central" &&
+    pathname.startsWith("/t/")
+  ) {
     // Canonicalise path-style tenant URLs to the tenant subdomain.
     const [, , slug, ...rest] = pathname.split("/");
     if (slug) {

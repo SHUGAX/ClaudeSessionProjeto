@@ -1,6 +1,14 @@
 import { describe, expect, it } from "vitest";
-import { findDuplicateMatches, normalizeDocumentNumber, type DuplicateCandidate } from "@/lib/documents/duplicates";
-import { hasBlockingErrors, validateDocument, type ValidatableDocument } from "@/lib/documents/validation";
+import {
+  findDuplicateMatches,
+  normalizeDocumentNumber,
+  type DuplicateCandidate,
+} from "@/lib/documents/duplicates";
+import {
+  hasBlockingErrors,
+  validateDocument,
+  type ValidatableDocument,
+} from "@/lib/documents/validation";
 
 const base: ValidatableDocument = {
   documentType: "invoice",
@@ -17,7 +25,8 @@ const base: ValidatableDocument = {
   lineItems: [],
 };
 const ctx = { today: "2026-03-01", duplicates: [] };
-const codes = (doc: Partial<ValidatableDocument>) => validateDocument({ ...base, ...doc }, ctx).map((i) => i.code);
+const codes = (doc: Partial<ValidatableDocument>) =>
+  validateDocument({ ...base, ...doc }, ctx).map((i) => i.code);
 
 describe("validateDocument", () => {
   it("accepts a consistent invoice", () => {
@@ -53,15 +62,26 @@ describe("validateDocument", () => {
   });
 
   it("allows negative totals on credit notes only", () => {
-    expect(codes({ total: "-123.00", subtotal: "-100.00", taxTotal: "-23.00" })).toContain("negative_total");
+    expect(codes({ total: "-123.00", subtotal: "-100.00", taxTotal: "-23.00" })).toContain(
+      "negative_total",
+    );
     expect(
-      codes({ documentType: "credit_note", total: "-123.00", subtotal: "-100.00", taxTotal: "-23.00" }),
+      codes({
+        documentType: "credit_note",
+        total: "-123.00",
+        subtotal: "-100.00",
+        taxTotal: "-23.00",
+      }),
     ).not.toContain("negative_total");
   });
 
   it("checks line items against subtotal", () => {
-    expect(codes({ lineItems: [{ lineTotal: "50.00" }, { lineTotal: "40.00" }] })).toContain("line_items_mismatch");
-    expect(codes({ lineItems: [{ lineTotal: "60.00" }, { lineTotal: "40.00" }] })).not.toContain("line_items_mismatch");
+    expect(codes({ lineItems: [{ lineTotal: "50.00" }, { lineTotal: "40.00" }] })).toContain(
+      "line_items_mismatch",
+    );
+    expect(codes({ lineItems: [{ lineTotal: "60.00" }, { lineTotal: "40.00" }] })).not.toContain(
+      "line_items_mismatch",
+    );
   });
 
   it("flags future dates", () => {
@@ -69,9 +89,16 @@ describe("validateDocument", () => {
   });
 
   it("reports duplicates as warnings with the related document", () => {
-    const issues = validateDocument(base, { ...ctx, duplicates: [{ documentId: "doc-2", kind: "same_number" }] });
+    const issues = validateDocument(base, {
+      ...ctx,
+      duplicates: [{ documentId: "doc-2", kind: "same_number" }],
+    });
     expect(issues).toContainEqual(
-      expect.objectContaining({ code: "possible_duplicate", severity: "warning", relatedDocumentId: "doc-2" }),
+      expect.objectContaining({
+        code: "possible_duplicate",
+        severity: "warning",
+        relatedDocumentId: "doc-2",
+      }),
     );
   });
 });
@@ -109,19 +136,28 @@ describe("duplicate detection", () => {
   });
 
   it("detects same supplier (by tax id) + same number", () => {
-    const matches = findDuplicateMatches(subject, [candidate({ supplierTaxId: "123456789", documentNumber: "ft2026/1" })]);
+    const matches = findDuplicateMatches(subject, [
+      candidate({ supplierTaxId: "123456789", documentNumber: "ft2026/1" }),
+    ]);
     expect(matches).toEqual([{ documentId: "b", kind: "same_number" }]);
   });
 
   it("does not flag same number from a different supplier", () => {
-    expect(findDuplicateMatches(subject, [candidate({ supplierTaxId: "999999990", documentNumber: "FT 2026/1" })])).toEqual(
-      [],
-    );
+    expect(
+      findDuplicateMatches(subject, [
+        candidate({ supplierTaxId: "999999990", documentNumber: "FT 2026/1" }),
+      ]),
+    ).toEqual([]);
   });
 
   it("detects weak duplicates (same supplier, date and total)", () => {
     const matches = findDuplicateMatches(subject, [
-      candidate({ supplierId: "s1", documentNumber: "OTHER", issueDate: "2026-01-10", total: "123.0" }),
+      candidate({
+        supplierId: "s1",
+        documentNumber: "OTHER",
+        issueDate: "2026-01-10",
+        total: "123.0",
+      }),
     ]);
     expect(matches).toEqual([{ documentId: "b", kind: "same_date_total" }]);
   });

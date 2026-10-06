@@ -1,6 +1,11 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { assignableRoles, can, canManageMember } from "@/lib/auth/permissions";
-import { buildStoragePath, detectMimeType, mimeFromExtension, sanitizeFilename } from "@/lib/documents/file-types";
+import {
+  buildStoragePath,
+  detectMimeType,
+  mimeFromExtension,
+  sanitizeFilename,
+} from "@/lib/documents/file-types";
 import { safeRedirectTarget } from "@/lib/security/redirect";
 import { resolveHost } from "@/lib/tenancy/host";
 import { isValidSlug, slugify, slugSchema } from "@/lib/tenancy/slug";
@@ -24,7 +29,10 @@ describe("resolveHost", () => {
   });
 
   it("supports a root domain with port (local development)", () => {
-    expect(resolveHost("empresa-a.localhost:3000", "localhost:3000")).toEqual({ kind: "tenant", slug: "empresa-a" });
+    expect(resolveHost("empresa-a.localhost:3000", "localhost:3000")).toEqual({
+      kind: "tenant",
+      slug: "empresa-a",
+    });
   });
 });
 
@@ -91,7 +99,9 @@ describe("file validation", () => {
     expect(sanitizeFilename("   ")).toBe("documento");
     const org = "11111111-1111-4111-8111-111111111111";
     const doc = "22222222-2222-4222-8222-222222222222";
-    expect(buildStoragePath(org, doc, "application/pdf")).toBe(`organizations/${org}/documents/${doc}/original.pdf`);
+    expect(buildStoragePath(org, doc, "application/pdf")).toBe(
+      `organizations/${org}/documents/${doc}/original.pdf`,
+    );
     expect(() => buildStoragePath("../x", doc, "application/pdf")).toThrow();
   });
 });
@@ -131,13 +141,17 @@ describe("tenant URLs", () => {
     process.env.NEXT_PUBLIC_TENANT_ROUTING = "subdomain";
     const { tenantPath, tenantUrl } = await import("@/lib/tenancy/urls");
     expect(tenantPath("empresa-a", "/documents")).toBe("/documents");
-    expect(tenantUrl("empresa-a", "/documents", "https://app.example.com")).toBe("https://empresa-a.example.com/documents");
+    expect(tenantUrl("empresa-a", "/documents", "https://app.example.com")).toBe(
+      "https://empresa-a.example.com/documents",
+    );
   });
 
   it("builds path URLs", async () => {
     process.env.NEXT_PUBLIC_TENANT_ROUTING = "path";
     const { tenantPath, tenantUrl } = await import("@/lib/tenancy/urls");
     expect(tenantPath("empresa-a", "/")).toBe("/t/empresa-a");
-    expect(tenantUrl("empresa-a", "/documents", "http://localhost:3000")).toBe("http://localhost:3000/t/empresa-a/documents");
+    expect(tenantUrl("empresa-a", "/documents", "http://localhost:3000")).toBe(
+      "http://localhost:3000/t/empresa-a/documents",
+    );
   });
 });

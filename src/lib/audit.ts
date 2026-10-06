@@ -40,7 +40,8 @@ export interface AuditEntry {
   actorUserId: string | null;
   actorType?: "user" | "system" | "platform_admin";
   action: AuditAction;
-  entityType: "organization" | "settings" | "member" | "invitation" | "document" | "supplier" | "category";
+  entityType:
+    "organization" | "settings" | "member" | "invitation" | "document" | "supplier" | "category";
   entityId?: string | null;
   oldValues?: Record<string, unknown> | null;
   newValues?: Record<string, unknown> | null;

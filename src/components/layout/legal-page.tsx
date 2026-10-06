@@ -15,13 +15,19 @@ export async function LegalPage({ title, children }: { title: string; children: 
       </Link>
       <h1 className="mb-4 text-2xl font-semibold tracking-tight">{title}</h1>
       <Callout tone="warning">{t("legal.draftNotice")}</Callout>
-      <div className="mt-8 space-y-4 text-sm leading-relaxed text-foreground/90 [&_h2]:mt-8 [&_h2]:text-base [&_h2]:font-semibold [&_li]:ml-5 [&_li]:list-disc">
+      <div className="text-foreground/90 mt-8 space-y-4 text-sm leading-relaxed [&_h2]:mt-8 [&_h2]:text-base [&_h2]:font-semibold [&_li]:ml-5 [&_li]:list-disc">
         {children}
       </div>
-      <nav className="mt-12 flex gap-4 border-t border-border pt-6 text-[13px] text-muted-foreground">
-        <Link href="/legal/privacy" className="hover:text-foreground">{t("legal.privacy")}</Link>
-        <Link href="/legal/terms" className="hover:text-foreground">{t("legal.terms")}</Link>
-        <Link href="/legal/cookies" className="hover:text-foreground">{t("legal.cookies")}</Link>
+      <nav className="border-border text-muted-foreground mt-12 flex gap-4 border-t pt-6 text-[13px]">
+        <Link href="/legal/privacy" className="hover:text-foreground">
+          {t("legal.privacy")}
+        </Link>
+        <Link href="/legal/terms" className="hover:text-foreground">
+          {t("legal.terms")}
+        </Link>
+        <Link href="/legal/cookies" className="hover:text-foreground">
+          {t("legal.cookies")}
+        </Link>
       </nav>
     </div>
   );

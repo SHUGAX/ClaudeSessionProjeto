@@ -4,7 +4,21 @@
  * WARNING by callers: suppliers may be foreign and use other tax ID formats.
  */
 const VALID_FIRST_DIGITS = new Set(["1", "2", "3", "5", "6", "8", "9"]);
-const VALID_PREFIXES_9 = new Set(["45", "70", "71", "72", "74", "75", "77", "78", "79", "90", "91", "98", "99"]);
+const VALID_PREFIXES_9 = new Set([
+  "45",
+  "70",
+  "71",
+  "72",
+  "74",
+  "75",
+  "77",
+  "78",
+  "79",
+  "90",
+  "91",
+  "98",
+  "99",
+]);
 
 export function isValidPortugueseNif(input: string): boolean {
   const nif = input.replace(/\s+/g, "").replace(/^PT/i, "");

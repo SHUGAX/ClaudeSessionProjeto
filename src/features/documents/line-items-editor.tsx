@@ -42,24 +42,26 @@ export function LineItemsEditor({
 
   return (
     <div className="flex flex-col gap-2">
-      {items.length === 0 ? <p className="text-[13px] text-muted-foreground">{t("review.lineItems.empty")}</p> : null}
+      {items.length === 0 ? (
+        <p className="text-muted-foreground text-[13px]">{t("review.lineItems.empty")}</p>
+      ) : null}
       {items.length > 0 ? (
         <div className="overflow-x-auto">
           <table className="w-full min-w-[640px] text-[13px]">
             <thead>
-              <tr className="text-left text-xs text-muted-foreground">
-                <th className="pb-1.5 pr-2 font-medium">{t("review.lineItems.description")}</th>
-                <th className="w-16 pb-1.5 pr-2 font-medium">{t("review.lineItems.quantity")}</th>
-                <th className="w-24 pb-1.5 pr-2 font-medium">{t("review.lineItems.unitPrice")}</th>
-                <th className="w-16 pb-1.5 pr-2 font-medium">{t("review.lineItems.taxRate")}</th>
-                <th className="w-24 pb-1.5 pr-2 font-medium">{t("review.lineItems.lineTotal")}</th>
+              <tr className="text-muted-foreground text-left text-xs">
+                <th className="pr-2 pb-1.5 font-medium">{t("review.lineItems.description")}</th>
+                <th className="w-16 pr-2 pb-1.5 font-medium">{t("review.lineItems.quantity")}</th>
+                <th className="w-24 pr-2 pb-1.5 font-medium">{t("review.lineItems.unitPrice")}</th>
+                <th className="w-16 pr-2 pb-1.5 font-medium">{t("review.lineItems.taxRate")}</th>
+                <th className="w-24 pr-2 pb-1.5 font-medium">{t("review.lineItems.lineTotal")}</th>
                 <th className="w-8 pb-1.5" />
               </tr>
             </thead>
             <tbody>
               {items.map((item, idx) => (
                 <tr key={item.key} className="align-top">
-                  <td className="pb-1.5 pr-2">
+                  <td className="pr-2 pb-1.5">
                     <Input
                       value={item.description}
                       onChange={(e) => set(item.key, "description", e.target.value)}
@@ -69,7 +71,7 @@ export function LineItemsEditor({
                     />
                   </td>
                   {(["quantity", "unitPrice", "taxRate", "lineTotal"] as const).map((field) => (
-                    <td key={field} className="pb-1.5 pr-2">
+                    <td key={field} className="pr-2 pb-1.5">
                       <Input
                         value={item[field]}
                         onChange={(e) => set(item.key, field, e.target.value)}

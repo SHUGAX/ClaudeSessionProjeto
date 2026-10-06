@@ -3,7 +3,13 @@ import { parseAmount } from "@/lib/money";
 import { EXTRACTION_SCHEMA_VERSION, rawExtractionSchema, type InvoiceExtraction } from "./schema";
 
 const ISO_CURRENCY = /^[A-Z]{3}$/;
-const CURRENCY_ALIASES: Record<string, string> = { "€": "EUR", EURO: "EUR", EUROS: "EUR", $: "USD", "£": "GBP" };
+const CURRENCY_ALIASES: Record<string, string> = {
+  "€": "EUR",
+  EURO: "EUR",
+  EUROS: "EUR",
+  $: "USD",
+  "£": "GBP",
+};
 
 function normalizeCurrency(value: string | null): string | null {
   if (!value) return null;
@@ -33,7 +39,8 @@ function normalizeRate(value: string | number | null): string | null {
   return n >= 0 && n <= 100 ? parsed : null;
 }
 
-export type NormalizeResult = { ok: true; data: InvoiceExtraction } | { ok: false; issues: string[] };
+export type NormalizeResult =
+  { ok: true; data: InvoiceExtraction } | { ok: false; issues: string[] };
 
 /**
  * Validates the untrusted model output with Zod and converts it to canonical
@@ -43,7 +50,10 @@ export type NormalizeResult = { ok: true; data: InvoiceExtraction } | { ok: fals
 export function normalizeExtraction(raw: unknown): NormalizeResult {
   const parsed = rawExtractionSchema.safeParse(raw);
   if (!parsed.success) {
-    return { ok: false, issues: parsed.error.issues.slice(0, 10).map((i) => `${i.path.join(".")}: ${i.code}`) };
+    return {
+      ok: false,
+      issues: parsed.error.issues.slice(0, 10).map((i) => `${i.path.join(".")}: ${i.code}`),
+    };
   }
   const r = parsed.data;
   return {
@@ -55,7 +65,10 @@ export function normalizeExtraction(raw: unknown): NormalizeResult {
         name: r.supplier.name,
         taxId: normalizeTaxIdDisplay(r.supplier.tax_id),
         address: r.supplier.address,
-        email: r.supplier.email && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(r.supplier.email) ? r.supplier.email.toLowerCase() : null,
+        email:
+          r.supplier.email && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(r.supplier.email)
+            ? r.supplier.email.toLowerCase()
+            : null,
       },
       customer: { name: r.customer.name, taxId: normalizeTaxIdDisplay(r.customer.tax_id) },
       documentNumber: r.document_number,

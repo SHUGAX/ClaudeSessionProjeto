@@ -10,11 +10,14 @@ import { PASSWORD } from "./helpers";
 const root = process.env.E2E_SUBDOMAIN_ROOT;
 const host = root?.split(":")[0];
 
+test.use({ launchOptions: { args: [`--host-resolver-rules=MAP *.${host ?? "example.test"} 127.0.0.1`] } });
+
 test.describe("subdomain routing", () => {
   test.skip(!root, "set E2E_SUBDOMAIN_ROOT to run");
-  test.use({ launchOptions: { args: [`--host-resolver-rules=MAP *.${host} 127.0.0.1`] } });
 
-  test("central login redirects to the tenant subdomain; other subdomains stay closed", async ({ page }) => {
+  test("central login redirects to the tenant subdomain; other subdomains stay closed", async ({
+    page,
+  }) => {
     await page.goto(`http://app.${root}/login`);
     await page.getByLabel("Email").fill("ana@empresa-a.test");
     await page.getByLabel("Palavra-passe").fill(PASSWORD);

@@ -43,7 +43,10 @@ export default async function TenantAppLayout({
       return (
         <AuthShell
           title={t("auth.suspendedTitle")}
-          organization={{ name: resolution.tenant.name, logoUrl: logoPublicUrl(resolution.tenant.logoPath) }}
+          organization={{
+            name: resolution.tenant.name,
+            logoUrl: logoPublicUrl(resolution.tenant.logoPath),
+          }}
         >
           <Callout tone="warning">{t("auth.suspendedBody")}</Callout>
         </AuthShell>
@@ -53,9 +56,11 @@ export default async function TenantAppLayout({
         <AuthShell title={t("auth.accessDeniedTitle")}>
           <div className="flex flex-col gap-4">
             <Callout tone="danger">{t("auth.accessDeniedBody")}</Callout>
-            <p className="text-[13px] text-muted-foreground">{t("auth.loggedInAs", { email: resolution.user.email })}</p>
+            <p className="text-muted-foreground text-[13px]">
+              {t("auth.loggedInAs", { email: resolution.user.email })}
+            </p>
             <div className="flex items-center justify-between">
-              <a href={centralUrl("/")} className="text-sm text-primary hover:underline">
+              <a href={centralUrl("/")} className="text-primary text-sm hover:underline">
                 {t("errors.goHome")}
               </a>
               <SignOutButton label={t("auth.useAnotherAccount")} />
@@ -88,13 +93,20 @@ export default async function TenantAppLayout({
   const navItems: NavItem[] = [
     { href: href("/"), label: "nav.dashboard", icon: "dashboard", exact: true },
     { href: href("/documents"), label: "nav.documents", icon: "documents" },
-    ...(can.uploadDocuments(role) ? [{ href: href("/upload"), label: "nav.upload", icon: "upload" } as NavItem] : []),
+    ...(can.uploadDocuments(role)
+      ? [{ href: href("/upload"), label: "nav.upload", icon: "upload" } as NavItem]
+      : []),
     { href: href("/suppliers"), label: "nav.suppliers", icon: "suppliers" },
     { href: href("/categories"), label: "nav.categories", icon: "categories" },
     { href: href("/alerts"), label: "nav.alerts", icon: "alerts", badge: alertsResult.count ?? 0 },
-    ...(can.manageUsers(role) ? [{ href: href("/users"), label: "nav.users", icon: "users" } as NavItem] : []),
+    { href: href("/assistant"), label: "nav.assistant", icon: "assistant" },
+    ...(can.manageUsers(role)
+      ? [{ href: href("/users"), label: "nav.users", icon: "users" } as NavItem]
+      : []),
     { href: href("/settings"), label: "nav.settings", icon: "settings" },
-    ...(can.viewAuditLog(role) ? [{ href: href("/audit"), label: "nav.audit", icon: "audit" } as NavItem] : []),
+    ...(can.viewAuditLog(role)
+      ? [{ href: href("/audit"), label: "nav.audit", icon: "audit" } as NavItem]
+      : []),
   ];
 
   const appUrl = serverEnv().APP_URL;

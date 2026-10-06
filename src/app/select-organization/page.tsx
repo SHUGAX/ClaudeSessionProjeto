@@ -20,7 +20,11 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function SelectOrganizationPage() {
   const user = await getSessionUser();
   if (!user) redirect("/login?next=/select-organization");
-  const [{ t }, memberships, platformAdmin] = await Promise.all([getI18n(), getMyMemberships(), isPlatformAdmin()]);
+  const [{ t }, memberships, platformAdmin] = await Promise.all([
+    getI18n(),
+    getMyMemberships(),
+    isPlatformAdmin(),
+  ]);
   const appUrl = serverEnv().APP_URL;
 
   return (
@@ -39,13 +43,19 @@ export default async function SelectOrganizationPage() {
           const active = m.organization_status === "active";
           const content = (
             <>
-              <OrganizationLogo name={m.organization_name} logoUrl={logoPublicUrl(m.logo_path)} size="sm" />
+              <OrganizationLogo
+                name={m.organization_name}
+                logoUrl={logoPublicUrl(m.logo_path)}
+                size="sm"
+              />
               <span className="min-w-0 flex-1">
                 <span className="block truncate text-sm font-medium">{m.organization_name}</span>
-                <span className="block text-xs text-muted-foreground">{t.dynamic(`roles.${m.role}`)}</span>
+                <span className="text-muted-foreground block text-xs">
+                  {t.dynamic(`roles.${m.role}`)}
+                </span>
               </span>
               {active ? (
-                <ChevronRight className="size-4 text-muted-foreground" aria-hidden />
+                <ChevronRight className="text-muted-foreground size-4" aria-hidden />
               ) : (
                 <Badge tone="warning">{t("auth.suspendedBadge")}</Badge>
               )}
@@ -56,7 +66,7 @@ export default async function SelectOrganizationPage() {
               {active ? (
                 <a
                   href={tenantUrl(m.organization_slug, "/", appUrl)}
-                  className="flex items-center gap-3 rounded-md px-2 py-2 hover:bg-muted"
+                  className="hover:bg-muted flex items-center gap-3 rounded-md px-2 py-2"
                 >
                   {content}
                 </a>
@@ -68,12 +78,15 @@ export default async function SelectOrganizationPage() {
         })}
         {platformAdmin ? (
           <li>
-            <Link href="/admin" className="flex items-center gap-3 rounded-md px-2 py-2 hover:bg-muted">
-              <span className="flex size-7 items-center justify-center rounded-md bg-muted">
-                <ShieldCheck className="size-4 text-muted-foreground" aria-hidden />
+            <Link
+              href="/admin"
+              className="hover:bg-muted flex items-center gap-3 rounded-md px-2 py-2"
+            >
+              <span className="bg-muted flex size-7 items-center justify-center rounded-md">
+                <ShieldCheck className="text-muted-foreground size-4" aria-hidden />
               </span>
               <span className="flex-1 text-sm font-medium">{t("nav.platformAdmin")}</span>
-              <ChevronRight className="size-4 text-muted-foreground" aria-hidden />
+              <ChevronRight className="text-muted-foreground size-4" aria-hidden />
             </Link>
           </li>
         ) : null}

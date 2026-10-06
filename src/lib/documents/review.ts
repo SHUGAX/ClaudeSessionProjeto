@@ -12,7 +12,12 @@ import { loadAuthorizedDocument } from "./access";
 import { findDuplicateMatches, normalizeDocumentNumber, type DuplicateSubject } from "./duplicates";
 import { strongestDuplicate } from "./pipeline";
 import { reviewInputSchema, type ParsedReviewInput, type ReviewInput } from "./review-schema";
-import { countIssues, hasBlockingErrors, validateDocument, type ValidationIssue } from "./validation";
+import {
+  countIssues,
+  hasBlockingErrors,
+  validateDocument,
+  type ValidationIssue,
+} from "./validation";
 
 export type ReviewResult =
   | { ok: true; status: DocumentStatus; issues: ValidationIssue[] }
@@ -21,18 +26,28 @@ export type ReviewResult =
 const EDITABLE_FIELDS =
   "id, organization_id, status, document_type, supplier_id, supplier_name, supplier_tax_id, document_number, issue_date, due_date, currency, subtotal::text, tax_total::text, total::text, payment_reference, iban, purchase_order, category_id, notes, updated_at, file_sha256, validated_at";
 
-export async function duplicateCandidates(supabase: UserSupabaseClient, organizationId: string, subject: DuplicateSubject) {
+export async function duplicateCandidates(
+  supabase: UserSupabaseClient,
+  organizationId: string,
+  subject: DuplicateSubject,
+) {
   const filters: string[] = [];
   if (subject.fileSha256) filters.push(`file_sha256.eq.${subject.fileSha256}`);
   const number = normalizeDocumentNumber(subject.documentNumber);
   if (number) filters.push(`document_number_normalized.eq."${number.replace(/"/g, "")}"`);
   const taxId = normalizeTaxId(subject.supplierTaxId);
-  if (taxId && subject.issueDate) filters.push(`and(supplier_tax_id_normalized.eq."${taxId}",issue_date.eq.${subject.issueDate})`);
-  if (subject.supplierId && subject.issueDate) filters.push(`and(supplier_id.eq.${subject.supplierId},issue_date.eq.${subject.issueDate})`);
+  if (taxId && subject.issueDate)
+    filters.push(
+      `and(supplier_tax_id_normalized.eq."${taxId}",issue_date.eq.${subject.issueDate})`,
+    );
+  if (subject.supplierId && subject.issueDate)
+    filters.push(`and(supplier_id.eq.${subject.supplierId},issue_date.eq.${subject.issueDate})`);
   if (filters.length === 0) return [];
   const { data } = await supabase
     .from("documents")
-    .select("id, supplier_id, supplier_tax_id, document_number, issue_date, total::text, file_sha256, status")
+    .select(
+      "id, supplier_id, supplier_tax_id, document_number, issue_date, total::text, file_sha256, status",
+    )
     .eq("organization_id", organizationId)
     .neq("id", subject.id)
     .or(filters.join(","))
@@ -135,7 +150,8 @@ export async function saveReview(rawInput: ReviewInput): Promise<ReviewResult> {
   if (!["review_required", "failed"].includes(current.status)) {
     return { ok: false, error: "errors.conflict" };
   }
-  if (current.updated_at !== input.expectedUpdatedAt) return { ok: false, error: "errors.conflict" };
+  if (current.updated_at !== input.expectedUpdatedAt)
+    return { ok: false, error: "errors.conflict" };
 
   const organizationId = current.organization_id;
   const wantsValidation = input.intent === "validate";
@@ -169,7 +185,10 @@ export async function saveReview(rawInput: ReviewInput): Promise<ReviewResult> {
     total: input.total,
     fileSha256: current.file_sha256,
   };
-  const duplicates = findDuplicateMatches(subject, await duplicateCandidates(supabase, organizationId, subject));
+  const duplicates = findDuplicateMatches(
+    subject,
+    await duplicateCandidates(supabase, organizationId, subject),
+  );
   const issues = validateDocument(
     {
       documentType: input.documentType,
@@ -254,7 +273,6 @@ export async function saveReview(rawInput: ReviewInput): Promise<ReviewResult> {
     throw new AppError(liError.code === "42501" ? "forbidden" : "internal");
   }
 
-
   const before = {
     document_type: current.document_type,
     supplier_id: current.supplier_id,
@@ -299,7 +317,10 @@ export async function saveReview(rawInput: ReviewInput): Promise<ReviewResult> {
       action: "document.validated",
       entityType: "document",
       entityId: current.id,
-      metadata: { warnings: countIssues(issues).warnings, supplierCreated: supplier?.created ?? false },
+      metadata: {
+        warnings: countIssues(issues).warnings,
+        supplierCreated: supplier?.created ?? false,
+      },
     });
   }
 
@@ -333,7 +354,8 @@ export async function changeDocumentState(
   action: SimpleAction,
   paidAt?: string | null,
 ): Promise<{ ok: true } | { ok: false; error: string }> {
-  const capability = action === "archive" || action === "unarchive" ? "archiveDocuments" : "editDocuments";
+  const capability =
+    action === "archive" || action === "unarchive" ? "archiveDocuments" : "editDocuments";
   const { doc, supabase, user } = await loadAuthorizedDocument(documentId, capability);
   const { data: current } = await supabase
     .from("documents")
@@ -342,7 +364,8 @@ export async function changeDocumentState(
     .single();
   if (!current) throw new AppError("not_found");
 
-  let patch: { status?: DocumentStatus; paid_at?: string | null; review_status?: "needs_review" } = {};
+  let patch: { status?: DocumentStatus; paid_at?: string | null; review_status?: "needs_review" } =
+    {};
   let auditAction:
     | "document.reopened"
     | "document.archived"
@@ -357,7 +380,11 @@ export async function changeDocumentState(
       auditAction = "document.reopened";
       break;
     case "archive":
-      if (current.status === "archived" || current.status === "processing" || current.status === "uploading") {
+      if (
+        current.status === "archived" ||
+        current.status === "processing" ||
+        current.status === "uploading"
+      ) {
         return { ok: false, error: "errors.conflict" };
       }
       patch = { status: "archived" };
@@ -399,7 +426,10 @@ export async function changeDocumentState(
     entityType: "document",
     entityId: documentId,
     oldValues: { status: current.status, paid_at: current.paid_at },
-    newValues: { status: patch.status ?? current.status, paid_at: "paid_at" in patch ? patch.paid_at : current.paid_at },
+    newValues: {
+      status: patch.status ?? current.status,
+      paid_at: "paid_at" in patch ? patch.paid_at : current.paid_at,
+    },
   });
   await createSupabaseAdminClient().rpc("refresh_alerts", { p_org: doc.organization_id });
   return { ok: true };

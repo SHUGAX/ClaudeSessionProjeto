@@ -4,7 +4,9 @@ import { ptPT } from "@/lib/i18n/messages/pt-PT";
 import { createTranslator } from "@/lib/i18n/translate";
 
 function keys(obj: object, prefix = ""): string[] {
-  return Object.entries(obj).flatMap(([k, v]) => (typeof v === "string" ? [`${prefix}${k}`] : keys(v as object, `${prefix}${k}.`)));
+  return Object.entries(obj).flatMap(([k, v]) =>
+    typeof v === "string" ? [`${prefix}${k}`] : keys(v as object, `${prefix}${k}.`),
+  );
 }
 
 describe("i18n", () => {
@@ -13,8 +15,21 @@ describe("i18n", () => {
   });
 
   it("uses European Portuguese vocabulary", () => {
-    const all = keys(ptPT).map((k) => k.split(".").reduce<unknown>((o, p) => (o as Record<string, unknown>)[p], ptPT) as string).join(" ");
-    for (const brazilian of ["Usuário", "usuário", "Senha", "senha", "Configurações", "arquivo", "tela "]) {
+    const all = keys(ptPT)
+      .map(
+        (k) =>
+          k.split(".").reduce<unknown>((o, p) => (o as Record<string, unknown>)[p], ptPT) as string,
+      )
+      .join(" ");
+    for (const brazilian of [
+      "Usuário",
+      "usuário",
+      "Senha",
+      "senha",
+      "Configurações",
+      "arquivo",
+      "tela ",
+    ]) {
       expect(all).not.toContain(brazilian);
     }
     expect(all).toContain("Utilizador");

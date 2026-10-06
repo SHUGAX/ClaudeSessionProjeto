@@ -39,9 +39,22 @@ export default async function DocumentsPage({
   const supabase = await createSupabaseServerClient();
 
   const [settings, suppliers, categories] = await Promise.all([
-    supabase.from("organization_settings").select("timezone").eq("organization_id", ctx.organization.id).maybeSingle(),
-    supabase.from("suppliers").select("id, name").eq("organization_id", ctx.organization.id).order("name").limit(1000),
-    supabase.from("categories").select("id, name").eq("organization_id", ctx.organization.id).order("name"),
+    supabase
+      .from("organization_settings")
+      .select("timezone")
+      .eq("organization_id", ctx.organization.id)
+      .maybeSingle(),
+    supabase
+      .from("suppliers")
+      .select("id, name")
+      .eq("organization_id", ctx.organization.id)
+      .order("name")
+      .limit(1000),
+    supabase
+      .from("categories")
+      .select("id, name")
+      .eq("organization_id", ctx.organization.id)
+      .order("name"),
   ]);
   const timezone = settings.data?.timezone ?? "Europe/Lisbon";
 
@@ -56,7 +69,8 @@ export default async function DocumentsPage({
   const raw = await searchParams;
   const hrefFor = (page: number) => {
     const qs = new URLSearchParams();
-    for (const [k, v] of Object.entries(raw)) if (typeof v === "string" && v && k !== "page") qs.set(k, v);
+    for (const [k, v] of Object.entries(raw))
+      if (typeof v === "string" && v && k !== "page") qs.set(k, v);
     qs.set("page", String(page));
     return `${base}?${qs.toString()}`;
   };
@@ -111,7 +125,10 @@ export default async function DocumentsPage({
               description={hasFilters ? t("documents.emptyBody") : t("documents.emptyNoDocsBody")}
               action={
                 !hasFilters && can.uploadDocuments(ctx.role) ? (
-                  <Link href={tenantPath(slug, "/upload")} className={buttonVariants({ size: "sm" })}>
+                  <Link
+                    href={tenantPath(slug, "/upload")}
+                    className={buttonVariants({ size: "sm" })}
+                  >
                     {t("documents.upload")}
                   </Link>
                 ) : undefined
@@ -134,48 +151,78 @@ export default async function DocumentsPage({
                 </THead>
                 <TBody>
                   {result.rows.map((row) => {
-                    const overdue = row.status === "validated" && !row.paid_at && row.due_date && row.due_date < today;
+                    const overdue =
+                      row.status === "validated" &&
+                      !row.paid_at &&
+                      row.due_date &&
+                      row.due_date < today;
                     return (
                       <TR key={row.id} className="relative">
                         <TD className="max-w-[16rem]">
                           <Link
                             href={tenantPath(slug, `/documents/${row.id}`)}
-                            className="font-medium text-foreground after:absolute after:inset-0 hover:text-primary"
+                            className="text-foreground hover:text-primary font-medium after:absolute after:inset-0"
                           >
-                            {row.document_number ?? <span className="text-muted-foreground">{t("documents.unnamed")}</span>}
+                            {row.document_number ?? (
+                              <span className="text-muted-foreground">
+                                {t("documents.unnamed")}
+                              </span>
+                            )}
                           </Link>
-                          <p className="truncate text-xs text-muted-foreground">
-                            {t.dynamic(`documentTypes.${row.document_type}`)} · {row.original_filename}
+                          <p className="text-muted-foreground truncate text-xs">
+                            {t.dynamic(`documentTypes.${row.document_type}`)} ·{" "}
+                            {row.original_filename}
                           </p>
                         </TD>
                         <TD className="max-w-[14rem]">
-                          <p className="truncate">{row.suppliers?.name ?? row.supplier_name ?? "—"}</p>
+                          <p className="truncate">
+                            {row.suppliers?.name ?? row.supplier_name ?? "—"}
+                          </p>
                           {row.supplier_tax_id ? (
-                            <p className="tabular text-xs text-muted-foreground">{row.supplier_tax_id}</p>
+                            <p className="tabular text-muted-foreground text-xs">
+                              {row.supplier_tax_id}
+                            </p>
                           ) : null}
                         </TD>
                         <TD className="tabular hidden whitespace-nowrap md:table-cell">
                           {formatBusinessDate(row.issue_date, locale)}
                         </TD>
-                        <TD className={cn("tabular hidden whitespace-nowrap lg:table-cell", overdue && "font-medium text-danger")}>
+                        <TD
+                          className={cn(
+                            "tabular hidden whitespace-nowrap lg:table-cell",
+                            overdue && "text-danger font-medium",
+                          )}
+                        >
                           {formatBusinessDate(row.due_date, locale)}
-                          {row.paid_at ? <span className="ml-1 text-xs text-success">· {t("documents.paid")}</span> : null}
+                          {row.paid_at ? (
+                            <span className="text-success ml-1 text-xs">
+                              · {t("documents.paid")}
+                            </span>
+                          ) : null}
                         </TD>
-                        <TD className="tabular whitespace-nowrap text-right font-medium">
+                        <TD className="tabular text-right font-medium whitespace-nowrap">
                           {formatMoney(row.total, row.currency, locale)}
                         </TD>
                         <TD>
                           <div className="flex flex-wrap items-center gap-1">
                             <DocumentStatusBadge status={row.status} />
                             {row.possible_duplicate_of ? (
-                              <span title={t("documents.possibleDuplicate")} className="text-warning">
-                                <Copy className="size-3.5" aria-label={t("documents.possibleDuplicate")} />
+                              <span
+                                title={t("documents.possibleDuplicate")}
+                                className="text-warning"
+                              >
+                                <Copy
+                                  className="size-3.5"
+                                  aria-label={t("documents.possibleDuplicate")}
+                                />
                               </span>
                             ) : null}
                           </div>
                         </TD>
-                        <TD className="hidden text-muted-foreground xl:table-cell">{row.categories?.name ?? "—"}</TD>
-                        <TD className="tabular hidden whitespace-nowrap text-muted-foreground 2xl:table-cell">
+                        <TD className="text-muted-foreground hidden xl:table-cell">
+                          {row.categories?.name ?? "—"}
+                        </TD>
+                        <TD className="tabular text-muted-foreground hidden whitespace-nowrap 2xl:table-cell">
                           {formatTimestamp(row.created_at, locale, timezone)}
                         </TD>
                       </TR>
@@ -183,8 +230,10 @@ export default async function DocumentsPage({
                   })}
                 </TBody>
               </Table>
-              <div className="flex items-center justify-between border-t border-border">
-                <p className="px-4 text-[13px] text-muted-foreground">{t.plural("common.results", result.total)}</p>
+              <div className="border-border flex items-center justify-between border-t">
+                <p className="text-muted-foreground px-4 text-[13px]">
+                  {t.plural("common.results", result.total)}
+                </p>
                 <Pagination
                   page={filters.page}
                   pageCount={pageCount}

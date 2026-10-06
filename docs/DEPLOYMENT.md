@@ -9,7 +9,7 @@
    10, letters + digits; configure SMTP (custom provider) for production.
 4. Auth → URL configuration: Site URL `https://app.example.com`; redirect URLs
    `https://app.example.com/**`, `https://*.example.com/**`.
-5. Auth → Email templates → *Reset password*: use
+5. Auth → Email templates → _Reset password_: use
    `supabase/templates/recovery.html` (`/auth/confirm?token_hash=…`).
 6. Storage buckets are created by the migration (verify `documents` is private).
 7. Create the first platform admin: `pnpm admin:create --email you@company.pt`
@@ -32,11 +32,11 @@
 
 ## 3. Domain and DNS
 
-| Record | Value |
-|---|---|
-| `example.com` (apex) | A record to Vercel (or ALIAS/ANAME) |
-| `app`, `admin`, `www` | CNAME to Vercel |
-| `*` | CNAME `cname.vercel-dns.com` (wildcard) |
+| Record                | Value                                   |
+| --------------------- | --------------------------------------- |
+| `example.com` (apex)  | A record to Vercel (or ALIAS/ANAME)     |
+| `app`, `admin`, `www` | CNAME to Vercel                         |
+| `*`                   | CNAME `cname.vercel-dns.com` (wildcard) |
 
 Add `example.com` and `*.example.com` to the Vercel project. Wildcard
 certificates on Vercel require using Vercel nameservers (or another

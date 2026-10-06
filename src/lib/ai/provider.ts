@@ -13,7 +13,8 @@ export function getExtractionProvider(): DocumentExtractionProvider {
   const env = serverEnv();
   switch (env.AI_PROVIDER) {
     case "gemini":
-      if (!env.GEMINI_API_KEY) throw new Error("GEMINI_API_KEY is required when AI_PROVIDER=gemini");
+      if (!env.GEMINI_API_KEY)
+        throw new Error("GEMINI_API_KEY is required when AI_PROVIDER=gemini");
       return new GeminiExtractionProvider(env.GEMINI_API_KEY, env.GEMINI_MODEL, env.AI_TIMEOUT_MS);
     case "mock":
     default:

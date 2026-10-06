@@ -28,10 +28,24 @@ export function NewPasswordFields() {
   return (
     <>
       <Field label={t("auth.newPassword")} htmlFor="password" hint={t("auth.passwordRules")}>
-        <Input id="password" name="password" type="password" autoComplete="new-password" minLength={10} required />
+        <Input
+          id="password"
+          name="password"
+          type="password"
+          autoComplete="new-password"
+          minLength={10}
+          required
+        />
       </Field>
       <Field label={t("auth.confirmPassword")} htmlFor="confirm">
-        <Input id="confirm" name="confirm" type="password" autoComplete="new-password" minLength={10} required />
+        <Input
+          id="confirm"
+          name="confirm"
+          type="password"
+          autoComplete="new-password"
+          minLength={10}
+          required
+        />
       </Field>
     </>
   );

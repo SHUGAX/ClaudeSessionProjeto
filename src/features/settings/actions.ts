@@ -17,14 +17,29 @@ export type SettingsState = { error?: string; success?: string } | undefined;
 const orgSchema = z.object({
   tenant: z.string().min(3).max(63),
   name: z.string().trim().min(1).max(200),
-  legalName: z.string().trim().max(300).transform((v) => v || null),
-  taxId: z.string().trim().max(40).transform((v) => v || null),
-  defaultCurrency: z.string().trim().toUpperCase().regex(/^[A-Z]{3}$/),
+  legalName: z
+    .string()
+    .trim()
+    .max(300)
+    .transform((v) => v || null),
+  taxId: z
+    .string()
+    .trim()
+    .max(40)
+    .transform((v) => v || null),
+  defaultCurrency: z
+    .string()
+    .trim()
+    .toUpperCase()
+    .regex(/^[A-Z]{3}$/),
   defaultLanguage: z.enum(["pt-PT", "en"]),
   dueSoonDays: z.coerce.number().int().min(1).max(90),
 });
 
-export async function saveOrganizationSettingsAction(_prev: SettingsState, formData: FormData): Promise<SettingsState> {
+export async function saveOrganizationSettingsAction(
+  _prev: SettingsState,
+  formData: FormData,
+): Promise<SettingsState> {
   const parsed = orgSchema.safeParse(Object.fromEntries(formData));
   if (!parsed.success) return { error: "errors.invalid_input" };
   const input = parsed.data;
@@ -35,7 +50,11 @@ export async function saveOrganizationSettingsAction(_prev: SettingsState, formD
 
   const [{ data: org }, { data: settings }] = await Promise.all([
     supabase.from("organizations").select("name, legal_name, tax_id").eq("id", orgId).single(),
-    supabase.from("organization_settings").select("default_currency, default_language, due_soon_days").eq("organization_id", orgId).single(),
+    supabase
+      .from("organization_settings")
+      .select("default_currency, default_language, due_soon_days")
+      .eq("organization_id", orgId)
+      .single(),
   ]);
 
   const orgValues = { name: input.name, legal_name: input.legalName, tax_id: input.taxId };
@@ -46,7 +65,10 @@ export async function saveOrganizationSettingsAction(_prev: SettingsState, formD
   };
   const [orgUpdate, settingsUpdate] = await Promise.all([
     supabase.from("organizations").update(orgValues).eq("id", orgId),
-    supabase.from("organization_settings").update({ ...settingValues, updated_by: ctx.user.id }).eq("organization_id", orgId),
+    supabase
+      .from("organization_settings")
+      .update({ ...settingValues, updated_by: ctx.user.id })
+      .eq("organization_id", orgId),
   ]);
   if (orgUpdate.error || settingsUpdate.error) return { error: "errors.internal" };
 
@@ -59,7 +81,10 @@ export async function saveOrganizationSettingsAction(_prev: SettingsState, formD
     }
   }
 
-  const diff = diffValues({ ...(org ?? {}), ...(settings ?? {}) }, { ...orgValues, ...settingValues });
+  const diff = diffValues(
+    { ...(org ?? {}), ...(settings ?? {}) },
+    { ...orgValues, ...settingValues },
+  );
   if (diff || (logo instanceof File && logo.size > 0)) {
     await recordAudit({
       organizationId: orgId,
@@ -78,11 +103,18 @@ export async function saveOrganizationSettingsAction(_prev: SettingsState, formD
 }
 
 const profileSchema = z.object({
-  fullName: z.string().trim().max(200).transform((v) => v || null),
+  fullName: z
+    .string()
+    .trim()
+    .max(200)
+    .transform((v) => v || null),
   preferredLanguage: z.enum(["pt-PT", "en"]),
 });
 
-export async function saveProfileAction(_prev: SettingsState, formData: FormData): Promise<SettingsState> {
+export async function saveProfileAction(
+  _prev: SettingsState,
+  formData: FormData,
+): Promise<SettingsState> {
   const parsed = profileSchema.safeParse(Object.fromEntries(formData));
   if (!parsed.success) return { error: "errors.invalid_input" };
   const user = await getSessionUser();

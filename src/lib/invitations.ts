@@ -25,7 +25,10 @@ export async function assertUserCapacity(organizationId: string): Promise<void> 
   const admin = createSupabaseAdminClient();
   const { data } = await admin.rpc("organization_limits", { p_org: organizationId });
   const limits = data?.[0];
-  if (limits?.max_users != null && limits.active_users + limits.pending_invitations >= limits.max_users) {
+  if (
+    limits?.max_users != null &&
+    limits.active_users + limits.pending_invitations >= limits.max_users
+  ) {
     throw new AppError("limit_reached", "user_limit");
   }
 }
@@ -52,7 +55,11 @@ export async function createInvitation(params: {
   const admin = createSupabaseAdminClient();
 
   // Already a member?
-  const { data: existingProfile } = await admin.from("profiles").select("id").eq("email", email).maybeSingle();
+  const { data: existingProfile } = await admin
+    .from("profiles")
+    .select("id")
+    .eq("email", email)
+    .maybeSingle();
   if (existingProfile) {
     const { data: existingMember } = await admin
       .from("organization_members")
@@ -106,7 +113,12 @@ export async function createInvitation(params: {
     link,
     expiresInDays: INVITATION_TTL_DAYS,
   });
-  const { delivered } = await sendEmail({ to: email, ...message, tag: "invitation", devLink: link });
+  const { delivered } = await sendEmail({
+    to: email,
+    ...message,
+    tag: "invitation",
+    devLink: link,
+  });
 
   await recordAudit({
     organizationId: params.organizationId,
@@ -138,7 +150,9 @@ export async function findValidInvitation(token: string): Promise<InvitationDeta
   const admin = createSupabaseAdminClient();
   const { data } = await admin
     .from("invitations")
-    .select("id, organization_id, email, role, status, expires_at, invited_by, organizations!inner(name, slug, status)")
+    .select(
+      "id, organization_id, email, role, status, expires_at, invited_by, organizations!inner(name, slug, status)",
+    )
     .eq("token_hash", sha256Hex(token))
     .maybeSingle();
   if (!data || data.status !== "pending") return null;
@@ -160,7 +174,10 @@ export async function findValidInvitation(token: string): Promise<InvitationDeta
  * marks the invitation as used. Caller must have verified that `userId`
  * belongs to the invitation's email.
  */
-export async function completeInvitation(invitation: InvitationDetails, userId: string): Promise<void> {
+export async function completeInvitation(
+  invitation: InvitationDetails,
+  userId: string,
+): Promise<void> {
   const admin = createSupabaseAdminClient();
   const now = new Date().toISOString();
 

@@ -19,7 +19,8 @@ import {
   uploadToSignedUrl,
 } from "./api-client";
 
-type Stage = "queued" | "uploading" | "verifying" | "processing" | "done" | "processing_failed" | "error";
+type Stage =
+  "queued" | "uploading" | "verifying" | "processing" | "done" | "processing_failed" | "error";
 
 interface UploadItem {
   key: string;
@@ -34,10 +35,18 @@ interface UploadItem {
 function errorKey(error: unknown): string {
   if (error instanceof ApiError) {
     if (error.code === "limit_reached") {
-      return error.reason === "storage_limit" ? "upload.errors.storage_limit" : "upload.errors.limit_reached";
+      return error.reason === "storage_limit"
+        ? "upload.errors.storage_limit"
+        : "upload.errors.limit_reached";
     }
     if (error.reason === "empty_file") return "upload.errors.empty_file";
-    const known = ["unsupported_file", "file_too_large", "forbidden", "rate_limited", "upload_failed"];
+    const known = [
+      "unsupported_file",
+      "file_too_large",
+      "forbidden",
+      "rate_limited",
+      "upload_failed",
+    ];
     if (known.includes(error.code)) return `upload.errors.${error.code}`;
   }
   return "upload.errors.generic";
@@ -60,16 +69,26 @@ export function Uploader() {
   const runOne = useCallback(
     async (item: UploadItem, type: DocumentType) => {
       const mime = mimeFromExtension(item.file.name);
-      if (!mime) return update(item.key, { stage: "error", error: "upload.errors.unsupported_file" });
-      if (item.file.size === 0) return update(item.key, { stage: "error", error: "upload.errors.empty_file" });
-      if (item.file.size > MAX_UPLOAD_BYTES) return update(item.key, { stage: "error", error: "upload.errors.file_too_large" });
+      if (!mime)
+        return update(item.key, { stage: "error", error: "upload.errors.unsupported_file" });
+      if (item.file.size === 0)
+        return update(item.key, { stage: "error", error: "upload.errors.empty_file" });
+      if (item.file.size > MAX_UPLOAD_BYTES)
+        return update(item.key, { stage: "error", error: "upload.errors.file_too_large" });
 
       let documentId: string | undefined;
       try {
         update(item.key, { stage: "uploading", progress: 0 });
-        const intent = await createUploadIntent({ tenant: slug, filename: item.file.name, size: item.file.size, documentType: type });
+        const intent = await createUploadIntent({
+          tenant: slug,
+          filename: item.file.name,
+          size: item.file.size,
+          documentType: type,
+        });
         documentId = intent.documentId;
-        await uploadToSignedUrl(intent.signedUrl, item.file, mime, (progress) => update(item.key, { progress }));
+        await uploadToSignedUrl(intent.signedUrl, item.file, mime, (progress) =>
+          update(item.key, { progress }),
+        );
         update(item.key, { stage: "verifying", documentId });
         const finalized = await finalizeUpload(intent.documentId);
         update(item.key, { stage: "processing", duplicate: Boolean(finalized.duplicateOf) });
@@ -115,14 +134,20 @@ export function Uploader() {
 
   const retry = (item: UploadItem) => {
     update(item.key, { stage: "queued", error: undefined, progress: 0 });
-    queueRef.current = queueRef.current.then(() => runOne({ ...item, stage: "queued" }, documentType));
+    queueRef.current = queueRef.current.then(() =>
+      runOne({ ...item, stage: "queued" }, documentType),
+    );
   };
 
   return (
     <div className="flex flex-col gap-5">
       <div className="flex flex-col gap-1.5 sm:max-w-xs">
         <Label htmlFor="documentType">{t("upload.documentType")}</Label>
-        <Select id="documentType" value={documentType} onChange={(e) => setDocumentType(e.target.value as DocumentType)}>
+        <Select
+          id="documentType"
+          value={documentType}
+          onChange={(e) => setDocumentType(e.target.value as DocumentType)}
+        >
           {DOCUMENT_TYPES.map((type) => (
             <option key={type} value={type}>
               {t.dynamic(`documentTypes.${type}`)}
@@ -149,15 +174,19 @@ export function Uploader() {
         onDrop={onDrop}
         className={cn(
           "flex cursor-pointer flex-col items-center justify-center gap-3 rounded-lg border-2 border-dashed px-6 py-12 text-center transition-colors",
-          dragging ? "border-primary bg-primary-soft" : "border-input bg-surface hover:border-primary/50 hover:bg-muted/40",
+          dragging
+            ? "border-primary bg-primary-soft"
+            : "border-input bg-surface hover:border-primary/50 hover:bg-muted/40",
         )}
       >
-        <div className="flex size-11 items-center justify-center rounded-full bg-primary-soft text-primary">
+        <div className="bg-primary-soft text-primary flex size-11 items-center justify-center rounded-full">
           <UploadCloud className="size-5" aria-hidden />
         </div>
         <div>
-          <p className="text-sm font-medium">{dragging ? t("upload.dropzoneActive") : t("upload.dropzone")}</p>
-          <p className="mt-1 text-xs text-muted-foreground">
+          <p className="text-sm font-medium">
+            {dragging ? t("upload.dropzoneActive") : t("upload.dropzone")}
+          </p>
+          <p className="text-muted-foreground mt-1 text-xs">
             {t("upload.supported", { size: formatBytes(MAX_UPLOAD_BYTES, locale) })}
           </p>
         </div>
@@ -165,7 +194,12 @@ export function Uploader() {
           <Button variant="secondary" size="sm" onClick={() => fileInput.current?.click()}>
             <FileUp /> {t("upload.chooseFiles")}
           </Button>
-          <Button variant="secondary" size="sm" className="sm:hidden" onClick={() => cameraInput.current?.click()}>
+          <Button
+            variant="secondary"
+            size="sm"
+            className="sm:hidden"
+            onClick={() => cameraInput.current?.click()}
+          >
             <Camera /> {t("upload.takePhoto")}
           </Button>
         </div>
@@ -195,25 +229,38 @@ export function Uploader() {
       </div>
 
       {items.length > 0 ? (
-        <ul className="divide-y divide-border rounded-lg border border-border bg-surface" aria-live="polite">
+        <ul
+          className="divide-border border-border bg-surface divide-y rounded-lg border"
+          aria-live="polite"
+        >
           {items.map((item) => (
-            <li key={item.key} className="flex flex-wrap items-center gap-3 px-4 py-3" data-testid="upload-item">
+            <li
+              key={item.key}
+              className="flex flex-wrap items-center gap-3 px-4 py-3"
+              data-testid="upload-item"
+            >
               <StageIcon stage={item.stage} />
               <div className="min-w-0 flex-1">
                 <p className="truncate text-sm font-medium">{item.file.name}</p>
-                <p className="text-xs text-muted-foreground">
+                <p className="text-muted-foreground text-xs">
                   {formatBytes(item.file.size, locale)} · <StageLabel item={item} />
                 </p>
                 {item.stage === "uploading" ? (
-                  <div className="mt-1.5 h-1 w-full overflow-hidden rounded bg-muted">
-                    <div className="h-full bg-primary transition-[width]" style={{ width: `${item.progress}%` }} />
+                  <div className="bg-muted mt-1.5 h-1 w-full overflow-hidden rounded">
+                    <div
+                      className="bg-primary h-full transition-[width]"
+                      style={{ width: `${item.progress}%` }}
+                    />
                   </div>
                 ) : null}
               </div>
               {item.documentId && (item.stage === "done" || item.stage === "processing_failed") ? (
                 <Link
                   href={href(`/documents/${item.documentId}`)}
-                  className={buttonVariants({ variant: item.stage === "done" ? "primary" : "secondary", size: "sm" })}
+                  className={buttonVariants({
+                    variant: item.stage === "done" ? "primary" : "secondary",
+                    size: "sm",
+                  })}
                 >
                   {t("upload.review")}
                 </Link>
@@ -232,10 +279,11 @@ export function Uploader() {
 }
 
 function StageIcon({ stage }: { stage: Stage }) {
-  if (stage === "done") return <CheckCircle2 className="size-5 text-success" aria-hidden />;
-  if (stage === "error" || stage === "processing_failed") return <AlertCircle className="size-5 text-danger" aria-hidden />;
-  if (stage === "queued") return <FileUp className="size-5 text-muted-foreground" aria-hidden />;
-  return <Loader2 className="size-5 animate-spin text-primary" aria-hidden />;
+  if (stage === "done") return <CheckCircle2 className="text-success size-5" aria-hidden />;
+  if (stage === "error" || stage === "processing_failed")
+    return <AlertCircle className="text-danger size-5" aria-hidden />;
+  if (stage === "queued") return <FileUp className="text-muted-foreground size-5" aria-hidden />;
+  return <Loader2 className="text-primary size-5 animate-spin" aria-hidden />;
 }
 
 function StageLabel({ item }: { item: UploadItem }) {
@@ -253,12 +301,16 @@ function StageLabel({ item }: { item: UploadItem }) {
       return (
         <span className="text-success">
           {t("upload.done")}
-          {item.duplicate ? <span className="text-warning"> · {t("upload.exactDuplicate")}</span> : null}
+          {item.duplicate ? (
+            <span className="text-warning"> · {t("upload.exactDuplicate")}</span>
+          ) : null}
         </span>
       );
     case "processing_failed":
       return <span className="text-danger">{t("upload.processingFailed")}</span>;
     case "error":
-      return <span className="text-danger">{t.dynamic(item.error ?? "upload.errors.generic")}</span>;
+      return (
+        <span className="text-danger">{t.dynamic(item.error ?? "upload.errors.generic")}</span>
+      );
   }
 }

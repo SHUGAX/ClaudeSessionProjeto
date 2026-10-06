@@ -37,8 +37,17 @@ export default async function AdminDashboardPage() {
     <>
       <PageHeader title={t("admin.title")} />
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <StatCard label={t("admin.stats.organizations")} value={stats?.organizations ?? 0} icon={Building2} href="/admin/organizations" />
-        <StatCard label={t("admin.stats.activeOrganizations")} value={stats?.active_organizations ?? 0} icon={CheckCircle2} />
+        <StatCard
+          label={t("admin.stats.organizations")}
+          value={stats?.organizations ?? 0}
+          icon={Building2}
+          href="/admin/organizations"
+        />
+        <StatCard
+          label={t("admin.stats.activeOrganizations")}
+          value={stats?.active_organizations ?? 0}
+          icon={CheckCircle2}
+        />
         <StatCard label={t("admin.stats.users")} value={stats?.users ?? 0} icon={Users} />
         <StatCard
           label={t("admin.stats.documents")}
@@ -46,7 +55,12 @@ export default async function AdminDashboardPage() {
           hint={`${t("admin.stats.documentsThisMonth")}: ${stats?.documents_this_month ?? 0}`}
           icon={FileText}
         />
-        <StatCard label={t("admin.stats.aiSuccess")} value={stats?.extractions_success_30d ?? 0} icon={Sparkles} tone="success" />
+        <StatCard
+          label={t("admin.stats.aiSuccess")}
+          value={stats?.extractions_success_30d ?? 0}
+          icon={Sparkles}
+          tone="success"
+        />
         <StatCard
           label={t("admin.stats.aiErrors")}
           value={stats?.extractions_error_30d ?? 0}
@@ -70,7 +84,9 @@ export default async function AdminDashboardPage() {
             <TBody>
               {(activity ?? []).map((a) => (
                 <TR key={a.id}>
-                  <TD className="tabular text-muted-foreground">{formatTimestamp(a.created_at, locale)}</TD>
+                  <TD className="tabular text-muted-foreground">
+                    {formatTimestamp(a.created_at, locale)}
+                  </TD>
                   <TD>{a.organizations?.name ?? "—"}</TD>
                   <TD>{t.dynamic(`audit.actions.${a.action.replace(".", "_")}`, a.action)}</TD>
                 </TR>

@@ -7,7 +7,9 @@ export function SignOutButton({ label, className }: { label: string; className?:
     <form action="/auth/signout" method="post" className={className}>
       <button
         type="submit"
-        className={cn("inline-flex items-center gap-2 text-[13px] text-muted-foreground hover:text-foreground")}
+        className={cn(
+          "text-muted-foreground hover:text-foreground inline-flex items-center gap-2 text-[13px]",
+        )}
       >
         <LogOut className="size-4" aria-hidden />
         {label}

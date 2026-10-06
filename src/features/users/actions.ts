@@ -13,7 +13,13 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { MEMBER_ROLES, type MemberRole } from "@/lib/supabase/types";
 import { requireTenantContext } from "@/lib/tenancy/context";
 
-export type UsersActionResult = { ok: boolean; error?: string; success?: string; link?: string; email?: string };
+export type UsersActionResult = {
+  ok: boolean;
+  error?: string;
+  success?: string;
+  link?: string;
+  email?: string;
+};
 
 const roleSchema = z.enum(MEMBER_ROLES as [MemberRole, ...MemberRole[]]);
 const uuid = z.string().uuid();
@@ -24,14 +30,24 @@ function mapDbError(code: string | undefined): string {
   return "errors.internal";
 }
 
-export async function inviteUserAction(_prev: UsersActionResult | undefined, formData: FormData): Promise<UsersActionResult> {
+export async function inviteUserAction(
+  _prev: UsersActionResult | undefined,
+  formData: FormData,
+): Promise<UsersActionResult> {
   const ctx = await requireTenantContext(String(formData.get("tenant") ?? ""));
   if (!can.manageUsers(ctx.role)) return { ok: false, error: "errors.forbidden" };
   const email = z.string().trim().toLowerCase().email().max(320).safeParse(formData.get("email"));
   const role = roleSchema.safeParse(formData.get("role"));
   if (!email.success) return { ok: false, error: "auth.invalidEmail" };
-  if (!role.success || !assignableRoles(ctx.role).includes(role.data)) return { ok: false, error: "errors.forbidden" };
-  if (!(await rateLimit(`invite-create:${ctx.user.id}`, RATE_LIMITS.invitationCreate.max, RATE_LIMITS.invitationCreate.windowSeconds))) {
+  if (!role.success || !assignableRoles(ctx.role).includes(role.data))
+    return { ok: false, error: "errors.forbidden" };
+  if (
+    !(await rateLimit(
+      `invite-create:${ctx.user.id}`,
+      RATE_LIMITS.invitationCreate.max,
+      RATE_LIMITS.invitationCreate.windowSeconds,
+    ))
+  ) {
     return { ok: false, error: "errors.rate_limited" };
   }
 
@@ -81,7 +97,11 @@ async function loadMember(tenant: string, memberId: string) {
   return { ctx, member, supabase };
 }
 
-export async function changeRoleAction(tenant: string, memberId: string, newRole: string): Promise<UsersActionResult> {
+export async function changeRoleAction(
+  tenant: string,
+  memberId: string,
+  newRole: string,
+): Promise<UsersActionResult> {
   const { ctx, member, supabase } = await loadMember(tenant, memberId);
   const role = roleSchema.safeParse(newRole);
   if (!member || !supabase || !role.success) return { ok: false, error: "errors.invalid_input" };
@@ -89,7 +109,10 @@ export async function changeRoleAction(tenant: string, memberId: string, newRole
   if (!canManageMember(ctx.role, member.role) || !assignableRoles(ctx.role).includes(role.data)) {
     return { ok: false, error: "users.ownerRequired" };
   }
-  const { error } = await supabase.from("organization_members").update({ role: role.data }).eq("id", member.id);
+  const { error } = await supabase
+    .from("organization_members")
+    .update({ role: role.data })
+    .eq("id", member.id);
   if (error) return { ok: false, error: mapDbError(error.code) };
   await recordAudit({
     organizationId: ctx.organization.id,
@@ -104,12 +127,20 @@ export async function changeRoleAction(tenant: string, memberId: string, newRole
   return { ok: true, success: "users.roleUpdated" };
 }
 
-export async function setMemberStatusAction(tenant: string, memberId: string, status: "active" | "disabled"): Promise<UsersActionResult> {
+export async function setMemberStatusAction(
+  tenant: string,
+  memberId: string,
+  status: "active" | "disabled",
+): Promise<UsersActionResult> {
   const { ctx, member, supabase } = await loadMember(tenant, memberId);
-  if (!member || !supabase || (status !== "active" && status !== "disabled")) return { ok: false, error: "errors.invalid_input" };
+  if (!member || !supabase || (status !== "active" && status !== "disabled"))
+    return { ok: false, error: "errors.invalid_input" };
   if (member.user_id === ctx.user.id) return { ok: false, error: "users.cannotChangeSelf" };
   if (!canManageMember(ctx.role, member.role)) return { ok: false, error: "users.ownerRequired" };
-  const { error } = await supabase.from("organization_members").update({ status }).eq("id", member.id);
+  const { error } = await supabase
+    .from("organization_members")
+    .update({ status })
+    .eq("id", member.id);
   if (error) return { ok: false, error: mapDbError(error.code) };
   await recordAudit({
     organizationId: ctx.organization.id,
@@ -124,7 +155,10 @@ export async function setMemberStatusAction(tenant: string, memberId: string, st
   return { ok: true };
 }
 
-export async function removeMemberAction(tenant: string, memberId: string): Promise<UsersActionResult> {
+export async function removeMemberAction(
+  tenant: string,
+  memberId: string,
+): Promise<UsersActionResult> {
   const { ctx, member, supabase } = await loadMember(tenant, memberId);
   if (!member || !supabase) return { ok: false, error: "errors.invalid_input" };
   if (member.user_id === ctx.user.id) return { ok: false, error: "users.cannotChangeSelf" };
@@ -143,9 +177,13 @@ export async function removeMemberAction(tenant: string, memberId: string): Prom
   return { ok: true };
 }
 
-export async function revokeInvitationAction(tenant: string, invitationId: string): Promise<UsersActionResult> {
+export async function revokeInvitationAction(
+  tenant: string,
+  invitationId: string,
+): Promise<UsersActionResult> {
   const ctx = await requireTenantContext(tenant);
-  if (!can.manageUsers(ctx.role) || !uuid.safeParse(invitationId).success) return { ok: false, error: "errors.forbidden" };
+  if (!can.manageUsers(ctx.role) || !uuid.safeParse(invitationId).success)
+    return { ok: false, error: "errors.forbidden" };
   const supabase = await createSupabaseServerClient();
   const { data, error } = await supabase
     .from("invitations")
@@ -168,9 +206,13 @@ export async function revokeInvitationAction(tenant: string, invitationId: strin
   return { ok: true };
 }
 
-export async function resendInvitationAction(tenant: string, invitationId: string): Promise<UsersActionResult> {
+export async function resendInvitationAction(
+  tenant: string,
+  invitationId: string,
+): Promise<UsersActionResult> {
   const ctx = await requireTenantContext(tenant);
-  if (!can.manageUsers(ctx.role) || !uuid.safeParse(invitationId).success) return { ok: false, error: "errors.forbidden" };
+  if (!can.manageUsers(ctx.role) || !uuid.safeParse(invitationId).success)
+    return { ok: false, error: "errors.forbidden" };
   const supabase = await createSupabaseServerClient();
   const { data: invitation } = await supabase
     .from("invitations")
@@ -178,9 +220,15 @@ export async function resendInvitationAction(tenant: string, invitationId: strin
     .eq("id", invitationId)
     .eq("organization_id", ctx.organization.id)
     .maybeSingle();
-  if (!invitation || invitation.status !== "pending") return { ok: false, error: "errors.conflict" };
-  if (!assignableRoles(ctx.role).includes(invitation.role)) return { ok: false, error: "users.ownerRequired" };
-  await supabase.from("invitations").update({ status: "revoked" }).eq("id", invitation.id).eq("status", "pending");
+  if (!invitation || invitation.status !== "pending")
+    return { ok: false, error: "errors.conflict" };
+  if (!assignableRoles(ctx.role).includes(invitation.role))
+    return { ok: false, error: "users.ownerRequired" };
+  await supabase
+    .from("invitations")
+    .update({ status: "revoked" })
+    .eq("id", invitation.id)
+    .eq("status", "pending");
 
   const form = new FormData();
   form.set("tenant", tenant);

@@ -25,8 +25,16 @@ const optionalInt = z
 
 const orgFields = {
   name: z.string().trim().min(1).max(200),
-  legalName: z.string().trim().max(300).transform((v) => v || null),
-  taxId: z.string().trim().max(40).transform((v) => v || null),
+  legalName: z
+    .string()
+    .trim()
+    .max(300)
+    .transform((v) => v || null),
+  taxId: z
+    .string()
+    .trim()
+    .max(40)
+    .transform((v) => v || null),
   planId: z
     .string()
     .optional()
@@ -44,7 +52,12 @@ const createSchema = z.object({
   adminEmail: z.string().trim().toLowerCase().email().max(320),
 });
 
-function limitValues(input: { maxUsers: number | null; maxDocuments: number | null; maxAiCalls: number | null; maxStorageMb: number | null }) {
+function limitValues(input: {
+  maxUsers: number | null;
+  maxDocuments: number | null;
+  maxAiCalls: number | null;
+  maxStorageMb: number | null;
+}) {
   return {
     max_users: input.maxUsers,
     max_documents_per_month: input.maxDocuments,
@@ -53,12 +66,21 @@ function limitValues(input: { maxUsers: number | null; maxDocuments: number | nu
   };
 }
 
-export async function createOrganizationAction(_prev: AdminFormState, formData: FormData): Promise<AdminFormState> {
+export async function createOrganizationAction(
+  _prev: AdminFormState,
+  formData: FormData,
+): Promise<AdminFormState> {
   const admin = await requirePlatformAdmin();
   const parsed = createSchema.safeParse(Object.fromEntries(formData));
   if (!parsed.success) {
     const slugIssue = parsed.error.issues.find((i) => i.path[0] === "slug");
-    return { error: slugIssue ? "admin.slugInvalid" : parsed.error.issues.some((i) => i.path[0] === "adminEmail") ? "auth.invalidEmail" : "errors.invalid_input" };
+    return {
+      error: slugIssue
+        ? "admin.slugInvalid"
+        : parsed.error.issues.some((i) => i.path[0] === "adminEmail")
+          ? "auth.invalidEmail"
+          : "errors.invalid_input",
+    };
   }
   const input = parsed.data;
   const db = createSupabaseAdminClient();
@@ -86,7 +108,14 @@ export async function createOrganizationAction(_prev: AdminFormState, formData: 
 
   // Default categories help the first invoices get classified.
   await db.from("categories").insert(
-    ["Eletricidade", "Telecomunicações", "Combustíveis", "Material de escritório", "Serviços", "Rendas"].map((name) => ({
+    [
+      "Eletricidade",
+      "Telecomunicações",
+      "Combustíveis",
+      "Material de escritório",
+      "Serviços",
+      "Rendas",
+    ].map((name) => ({
       organization_id: org.id,
       name,
     })),
@@ -137,7 +166,10 @@ export async function createOrganizationAction(_prev: AdminFormState, formData: 
 
 const updateSchema = z.object({ id: z.string().uuid(), ...orgFields });
 
-export async function updateOrganizationAction(_prev: AdminFormState, formData: FormData): Promise<AdminFormState> {
+export async function updateOrganizationAction(
+  _prev: AdminFormState,
+  formData: FormData,
+): Promise<AdminFormState> {
   const admin = await requirePlatformAdmin();
   const parsed = updateSchema.safeParse(Object.fromEntries(formData));
   if (!parsed.success) return { error: "errors.invalid_input" };
@@ -145,11 +177,19 @@ export async function updateOrganizationAction(_prev: AdminFormState, formData: 
   const db = createSupabaseAdminClient();
   const { data: before } = await db
     .from("organizations")
-    .select("name, legal_name, tax_id, plan_id, max_users, max_documents_per_month, max_ai_calls_per_month, max_storage_bytes")
+    .select(
+      "name, legal_name, tax_id, plan_id, max_users, max_documents_per_month, max_ai_calls_per_month, max_storage_bytes",
+    )
     .eq("id", input.id)
     .maybeSingle();
   if (!before) return { error: "errors.not_found" };
-  const values = { name: input.name, legal_name: input.legalName, tax_id: input.taxId, plan_id: input.planId, ...limitValues(input) };
+  const values = {
+    name: input.name,
+    legal_name: input.legalName,
+    tax_id: input.taxId,
+    plan_id: input.planId,
+    ...limitValues(input),
+  };
   const { error } = await db.from("organizations").update(values).eq("id", input.id);
   if (error) return { error: "errors.internal" };
 
@@ -175,7 +215,11 @@ export async function updateOrganizationAction(_prev: AdminFormState, formData: 
   return { success: "admin.updated" };
 }
 
-export async function setOrganizationStatusAction(id: string, status: "active" | "suspended", reason?: string): Promise<AdminFormState> {
+export async function setOrganizationStatusAction(
+  id: string,
+  status: "active" | "suspended",
+  reason?: string,
+): Promise<AdminFormState> {
   const admin = await requirePlatformAdmin();
   if (!z.string().uuid().safeParse(id).success || (status !== "active" && status !== "suspended")) {
     return { error: "errors.invalid_input" };
@@ -203,14 +247,21 @@ export async function setOrganizationStatusAction(id: string, status: "active" |
   return { success: "admin.updated" };
 }
 
-export async function inviteOrganizationAdminAction(_prev: AdminFormState, formData: FormData): Promise<AdminFormState> {
+export async function inviteOrganizationAdminAction(
+  _prev: AdminFormState,
+  formData: FormData,
+): Promise<AdminFormState> {
   const admin = await requirePlatformAdmin();
   const id = z.string().uuid().safeParse(formData.get("id"));
   const email = z.string().trim().toLowerCase().email().max(320).safeParse(formData.get("email"));
   if (!id.success) return { error: "errors.invalid_input" };
   if (!email.success) return { error: "auth.invalidEmail" };
   const db = createSupabaseAdminClient();
-  const { data: org } = await db.from("organizations").select("id, name").eq("id", id.data).maybeSingle();
+  const { data: org } = await db
+    .from("organizations")
+    .select("id, name")
+    .eq("id", id.data)
+    .maybeSingle();
   if (!org) return { error: "errors.not_found" };
   try {
     const profile = await getProfile();
@@ -226,7 +277,11 @@ export async function inviteOrganizationAdminAction(_prev: AdminFormState, formD
       actorType: "platform_admin",
     });
     revalidatePath("/admin", "layout");
-    return { success: "users.inviteSent", email: email.data, link: invitation.emailDelivered ? undefined : invitation.link };
+    return {
+      success: "users.inviteSent",
+      email: email.data,
+      link: invitation.emailDelivered ? undefined : invitation.link,
+    };
   } catch (e) {
     if (e instanceof AppError) {
       if (e.message === "already_member") return { error: "users.alreadyMember" };

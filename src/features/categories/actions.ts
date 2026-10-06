@@ -23,7 +23,10 @@ async function context(tenant: string) {
   return ctx;
 }
 
-export async function createCategoryAction(_prev: CategoryState, formData: FormData): Promise<CategoryState> {
+export async function createCategoryAction(
+  _prev: CategoryState,
+  formData: FormData,
+): Promise<CategoryState> {
   const ctx = await context(String(formData.get("tenant") ?? ""));
   if (!ctx) return { error: "errors.forbidden" };
   const name = nameSchema.safeParse(formData.get("name"));
@@ -32,10 +35,16 @@ export async function createCategoryAction(_prev: CategoryState, formData: FormD
   const supabase = await createSupabaseServerClient();
   const { data, error } = await supabase
     .from("categories")
-    .insert({ organization_id: ctx.organization.id, name: name.data, code: code.data, created_by: ctx.user.id })
+    .insert({
+      organization_id: ctx.organization.id,
+      name: name.data,
+      code: code.data,
+      created_by: ctx.user.id,
+    })
     .select("id")
     .single();
-  if (error || !data) return { error: error?.code === "23505" ? "categories.duplicate" : "errors.internal" };
+  if (error || !data)
+    return { error: error?.code === "23505" ? "categories.duplicate" : "errors.internal" };
   await recordAudit({
     organizationId: ctx.organization.id,
     actorUserId: ctx.user.id,
@@ -48,15 +57,29 @@ export async function createCategoryAction(_prev: CategoryState, formData: FormD
   return { success: "common.saved" };
 }
 
-export async function renameCategoryAction(tenant: string, id: string, rawName: string): Promise<CategoryState> {
+export async function renameCategoryAction(
+  tenant: string,
+  id: string,
+  rawName: string,
+): Promise<CategoryState> {
   const ctx = await context(tenant);
   if (!ctx) return { error: "errors.forbidden" };
   const name = nameSchema.safeParse(rawName);
-  if (!name.success || !z.string().uuid().safeParse(id).success) return { error: "errors.invalid_input" };
+  if (!name.success || !z.string().uuid().safeParse(id).success)
+    return { error: "errors.invalid_input" };
   const supabase = await createSupabaseServerClient();
-  const { data: before } = await supabase.from("categories").select("name").eq("id", id).eq("organization_id", ctx.organization.id).maybeSingle();
+  const { data: before } = await supabase
+    .from("categories")
+    .select("name")
+    .eq("id", id)
+    .eq("organization_id", ctx.organization.id)
+    .maybeSingle();
   if (!before) return { error: "errors.not_found" };
-  const { error } = await supabase.from("categories").update({ name: name.data }).eq("id", id).eq("organization_id", ctx.organization.id);
+  const { error } = await supabase
+    .from("categories")
+    .update({ name: name.data })
+    .eq("id", id)
+    .eq("organization_id", ctx.organization.id);
   if (error) return { error: error.code === "23505" ? "categories.duplicate" : "errors.internal" };
   await recordAudit({
     organizationId: ctx.organization.id,
@@ -76,10 +99,19 @@ export async function deleteCategoryAction(tenant: string, id: string): Promise<
   if (!ctx) return { error: "errors.forbidden" };
   if (!z.string().uuid().safeParse(id).success) return { error: "errors.invalid_input" };
   const supabase = await createSupabaseServerClient();
-  const { data: before } = await supabase.from("categories").select("name").eq("id", id).eq("organization_id", ctx.organization.id).maybeSingle();
+  const { data: before } = await supabase
+    .from("categories")
+    .select("name")
+    .eq("id", id)
+    .eq("organization_id", ctx.organization.id)
+    .maybeSingle();
   if (!before) return { error: "errors.not_found" };
   // Documents/suppliers referencing it are set to "no category" by the FK (ON DELETE SET NULL).
-  const { error } = await supabase.from("categories").delete().eq("id", id).eq("organization_id", ctx.organization.id);
+  const { error } = await supabase
+    .from("categories")
+    .delete()
+    .eq("id", id)
+    .eq("organization_id", ctx.organization.id);
   if (error) return { error: "errors.internal" };
   await recordAudit({
     organizationId: ctx.organization.id,

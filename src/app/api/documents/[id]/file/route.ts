@@ -19,7 +19,11 @@ export const GET = apiHandler(
 
     const { data, error } = await supabase.storage
       .from("documents")
-      .createSignedUrl(doc.storage_path, SIGNED_URL_TTL_SECONDS, download ? { download: doc.original_filename } : undefined);
+      .createSignedUrl(
+        doc.storage_path,
+        SIGNED_URL_TTL_SECONDS,
+        download ? { download: doc.original_filename } : undefined,
+      );
     if (error || !data) throw new AppError("not_found");
 
     if (download) {
@@ -32,7 +36,11 @@ export const GET = apiHandler(
         metadata: { download: true },
       });
     }
-    return json({ url: data.signedUrl, mimeType: doc.mime_type, expiresIn: SIGNED_URL_TTL_SECONDS });
+    return json({
+      url: data.signedUrl,
+      mimeType: doc.mime_type,
+      expiresIn: SIGNED_URL_TTL_SECONDS,
+    });
   },
   { mutating: false },
 );

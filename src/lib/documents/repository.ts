@@ -11,7 +11,6 @@ import { normalizeDocumentNumber } from "./duplicates";
 import type { PipelineDeps } from "./pipeline";
 import { normalizeTaxId } from "@/lib/validation/tax-id";
 
-
 /**
  * Supabase implementation of the pipeline side effects. Runs with the service
  * role AFTER the caller has been authorized; every statement is explicitly
@@ -36,7 +35,9 @@ export function createPipelineDeps(): PipelineDeps {
         })
         .eq("id", doc.id)
         .eq("organization_id", doc.organizationId)
-        .or(`status.in.(uploaded,failed,review_required),and(status.eq.processing,processing_started_at.lt.${staleBefore})`)
+        .or(
+          `status.in.(uploaded,failed,review_required),and(status.eq.processing,processing_started_at.lt.${staleBefore})`,
+        )
         .select("id");
       if (error) throw error;
       return (data?.length ?? 0) > 0;
@@ -44,7 +45,8 @@ export function createPipelineDeps(): PipelineDeps {
 
     async downloadOriginal(doc) {
       const { data, error } = await admin.storage.from("documents").download(doc.storagePath);
-      if (error || !data) throw new Error(`storage_download_failed: ${error?.message ?? "no data"}`);
+      if (error || !data)
+        throw new Error(`storage_download_failed: ${error?.message ?? "no data"}`);
       return new Uint8Array(await data.arrayBuffer());
     },
 
@@ -92,15 +94,21 @@ export function createPipelineDeps(): PipelineDeps {
       if (number) filters.push(`document_number_normalized.eq."${number.replace(/"/g, "")}"`);
       const taxId = normalizeTaxId(subject.supplierTaxId);
       if (taxId && subject.issueDate) {
-        filters.push(`and(supplier_tax_id_normalized.eq."${taxId}",issue_date.eq.${subject.issueDate})`);
+        filters.push(
+          `and(supplier_tax_id_normalized.eq."${taxId}",issue_date.eq.${subject.issueDate})`,
+        );
       }
       if (subject.supplierId && subject.issueDate) {
-        filters.push(`and(supplier_id.eq.${subject.supplierId},issue_date.eq.${subject.issueDate})`);
+        filters.push(
+          `and(supplier_id.eq.${subject.supplierId},issue_date.eq.${subject.issueDate})`,
+        );
       }
       if (filters.length === 0) return [];
       const { data, error } = await admin
         .from("documents")
-        .select("id, supplier_id, supplier_tax_id, document_number, issue_date, total, file_sha256, status")
+        .select(
+          "id, supplier_id, supplier_tax_id, document_number, issue_date, total, file_sha256, status",
+        )
         .eq("organization_id", organizationId)
         .neq("id", subject.id)
         .neq("status", "archived")
@@ -152,7 +160,11 @@ export function createPipelineDeps(): PipelineDeps {
         .eq("organization_id", doc.organizationId);
       if (error) throw error;
 
-      await admin.from("document_line_items").delete().eq("document_id", doc.id).eq("organization_id", doc.organizationId);
+      await admin
+        .from("document_line_items")
+        .delete()
+        .eq("document_id", doc.id)
+        .eq("organization_id", doc.organizationId);
       if (data.lineItems.length > 0) {
         const { error: liError } = await admin.from("document_line_items").insert(
           data.lineItems.slice(0, 500).map((li, position) => ({

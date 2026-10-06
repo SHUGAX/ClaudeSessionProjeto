@@ -43,15 +43,17 @@ export function UserMenu({
   return (
     <DropdownMenu>
       <DropdownMenuTrigger
-        className="flex items-center gap-2 rounded-md px-1.5 py-1 text-left hover:bg-muted"
+        className="hover:bg-muted flex items-center gap-2 rounded-md px-1.5 py-1 text-left"
         aria-label={t("nav.userMenu")}
       >
-        <span className="flex size-8 items-center justify-center rounded-full bg-muted text-xs font-semibold text-muted-foreground">
+        <span className="bg-muted text-muted-foreground flex size-8 items-center justify-center rounded-full text-xs font-semibold">
           {initials}
         </span>
         <span className="hidden min-w-0 sm:block">
-          <span className="block max-w-40 truncate text-[13px] font-medium leading-4">{display}</span>
-          <span className="block text-xs text-muted-foreground">{roleLabel}</span>
+          <span className="block max-w-40 truncate text-[13px] leading-4 font-medium">
+            {display}
+          </span>
+          <span className="text-muted-foreground block text-xs">{roleLabel}</span>
         </span>
       </DropdownMenuTrigger>
       <DropdownMenuContent className="w-60">
@@ -86,7 +88,7 @@ export function UserMenu({
         <form action="/auth/signout" method="post">
           <button
             type="submit"
-            className="flex w-full items-center gap-2 rounded px-2 py-1.5 text-sm hover:bg-muted [&_svg]:size-4 [&_svg]:text-muted-foreground"
+            className="hover:bg-muted [&_svg]:text-muted-foreground flex w-full items-center gap-2 rounded px-2 py-1.5 text-sm [&_svg]:size-4"
           >
             <LogOut /> {t("common.signOut")}
           </button>
@@ -114,11 +116,11 @@ export function OrganizationSwitcher({
   return (
     <DropdownMenu>
       <DropdownMenuTrigger
-        className="flex w-full items-center justify-between gap-2 rounded-md px-1 py-1 hover:bg-muted"
+        className="hover:bg-muted flex w-full items-center justify-between gap-2 rounded-md px-1 py-1"
         aria-label={t("nav.switchOrganization")}
       >
         {header}
-        <ChevronsUpDown className="size-4 shrink-0 text-muted-foreground" aria-hidden />
+        <ChevronsUpDown className="text-muted-foreground size-4 shrink-0" aria-hidden />
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start" className="w-56">
         <DropdownMenuLabel>{t("nav.switchOrganization")}</DropdownMenuLabel>

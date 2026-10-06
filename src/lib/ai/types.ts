@@ -26,7 +26,13 @@ export interface ExtractionFailure {
   model: string;
   promptVersion: string;
   schemaVersion: string;
-  errorCode: "provider_unavailable" | "timeout" | "invalid_response" | "schema_mismatch" | "blocked" | "configuration";
+  errorCode:
+    | "provider_unavailable"
+    | "timeout"
+    | "invalid_response"
+    | "schema_mismatch"
+    | "blocked"
+    | "configuration";
   /** Sanitised message: never contains document content or secrets. */
   errorMessage: string;
   raw?: unknown;

@@ -17,7 +17,9 @@ export async function GET(request: Request) {
   }
 
   const admin = createSupabaseAdminClient();
-  const { data: alerts, error: alertsError } = await admin.rpc("refresh_alerts", { p_org: undefined });
+  const { data: alerts, error: alertsError } = await admin.rpc("refresh_alerts", {
+    p_org: undefined,
+  });
   if (alertsError) logger.error("cron_refresh_alerts_failed", { code: alertsError.code });
 
   const cutoff = new Date(Date.now() - 24 * 3600 * 1000).toISOString();
@@ -33,11 +35,21 @@ export async function GET(request: Request) {
     const { count } = await admin
       .from("documents")
       .delete({ count: "exact" })
-      .in("id", abandoned.map((d) => d.id))
+      .in(
+        "id",
+        abandoned.map((d) => d.id),
+      )
       .eq("status", "uploading");
     removed = count ?? 0;
   }
 
-  logger.info("cron_maintenance_done", { alertsUpserted: alerts ?? 0, abandonedUploadsRemoved: removed });
-  return NextResponse.json({ ok: true, alertsUpserted: alerts ?? 0, abandonedUploadsRemoved: removed });
+  logger.info("cron_maintenance_done", {
+    alertsUpserted: alerts ?? 0,
+    abandonedUploadsRemoved: removed,
+  });
+  return NextResponse.json({
+    ok: true,
+    alertsUpserted: alerts ?? 0,
+    abandonedUploadsRemoved: removed,
+  });
 }

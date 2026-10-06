@@ -35,7 +35,9 @@ export async function createTestDatabase(): Promise<TestDb> {
   await admin.connect();
   await admin.query(readFileSync(path.join(root, "tests/db/supabase-shim.sql"), "utf8"));
   const migrationsDir = path.join(root, "supabase/migrations");
-  for (const file of readdirSync(migrationsDir).filter((f) => f.endsWith(".sql")).sort()) {
+  for (const file of readdirSync(migrationsDir)
+    .filter((f) => f.endsWith(".sql"))
+    .sort()) {
     await admin.query(readFileSync(path.join(migrationsDir, file), "utf8"));
   }
 
@@ -98,14 +100,23 @@ export async function seedFixtures(db: TestDb) {
     await q("insert into auth.users (id, email) values ($1, $2)", [id, email]);
   }
   await q("insert into public.platform_admins (user_id) values ($1)", [IDS.platform]);
-  await q("insert into public.organizations (id, name, slug) values ($1, 'Org A', 'org-a'), ($2, 'Org B', 'org-b')", [IDS.orgA, IDS.orgB]);
-  await q("insert into public.organization_settings (organization_id) values ($1), ($2)", [IDS.orgA, IDS.orgB]);
+  await q(
+    "insert into public.organizations (id, name, slug) values ($1, 'Org A', 'org-a'), ($2, 'Org B', 'org-b')",
+    [IDS.orgA, IDS.orgB],
+  );
+  await q("insert into public.organization_settings (organization_id) values ($1), ($2)", [
+    IDS.orgA,
+    IDS.orgB,
+  ]);
   await q(
     `insert into public.organization_members (organization_id, user_id, role) values
       ($1, $2, 'owner'), ($1, $3, 'admin'), ($1, $4, 'viewer'), ($5, $6, 'owner')`,
     [IDS.orgA, IDS.ownerA, IDS.adminA, IDS.viewerA, IDS.orgB, IDS.ownerB],
   );
-  await q("insert into public.categories (id, organization_id, name) values ($1, $2, 'Energia B')", [IDS.categoryB, IDS.orgB]);
+  await q(
+    "insert into public.categories (id, organization_id, name) values ($1, $2, 'Energia B')",
+    [IDS.categoryB, IDS.orgB],
+  );
   await q(
     "insert into public.suppliers (id, organization_id, name, tax_id) values ($1, $2, 'Fornecedor A', '123456789'), ($3, $4, 'Fornecedor B', '123456789')",
     [IDS.supplierA, IDS.orgA, IDS.supplierB, IDS.orgB],
@@ -120,7 +131,9 @@ export async function seedFixtures(db: TestDb) {
        values ($1, $2, 'review_required', 'f.pdf', $3, $4, 'FT 1', 100, 'application/pdf')`,
       [id, org, storagePath, supplier],
     );
-    await q("insert into storage.objects (bucket_id, name) values ('documents', $1)", [storagePath]);
+    await q("insert into storage.objects (bucket_id, name) values ('documents', $1)", [
+      storagePath,
+    ]);
     await q(
       "insert into public.audit_logs (organization_id, action, entity_type, entity_id) values ($1, 'document.uploaded', 'document', $2), ($1, 'member.invited', 'invitation', null)",
       [org, id],

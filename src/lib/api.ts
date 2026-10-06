@@ -17,7 +17,10 @@ export function apiHandler<Ctx>(
     } catch (error) {
       const appError = toAppError(error);
       return NextResponse.json(
-        { error: appError.code, reason: appError.code === "internal" ? undefined : appError.message },
+        {
+          error: appError.code,
+          reason: appError.code === "internal" ? undefined : appError.message,
+        },
         { status: appError.status, headers: { "Cache-Control": "no-store" } },
       );
     }
@@ -25,5 +28,8 @@ export function apiHandler<Ctx>(
 }
 
 export function json(data: unknown, init?: ResponseInit) {
-  return NextResponse.json(data, { ...init, headers: { "Cache-Control": "no-store", ...init?.headers } });
+  return NextResponse.json(data, {
+    ...init,
+    headers: { "Cache-Control": "no-store", ...init?.headers },
+  });
 }

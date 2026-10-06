@@ -1,7 +1,11 @@
 import { describe, expect, it, vi } from "vitest";
 import type { DocumentExtractionProvider, ExtractionResult } from "@/lib/ai/types";
 import { normalizeExtraction } from "@/lib/ai/normalize";
-import { runExtractionPipeline, type PipelineDeps, type PipelineDocument } from "@/lib/documents/pipeline";
+import {
+  runExtractionPipeline,
+  type PipelineDeps,
+  type PipelineDocument,
+} from "@/lib/documents/pipeline";
 
 const doc: PipelineDocument = {
   id: "doc-1",
@@ -14,7 +18,13 @@ const doc: PipelineDocument = {
   categoryId: null,
 };
 
-const base = { provider: "fake", model: "fake-1", promptVersion: "p1", schemaVersion: "s1", durationMs: 5 };
+const base = {
+  provider: "fake",
+  model: "fake-1",
+  promptVersion: "p1",
+  schemaVersion: "s1",
+  durationMs: 5,
+};
 
 function successResult(): ExtractionResult {
   const normalized = normalizeExtraction({
@@ -51,7 +61,9 @@ function makeDeps(result: ExtractionResult | Error, overrides: Partial<PipelineD
       calls.push("saveExtraction");
       return "ext-1";
     }),
-    listSuppliers: vi.fn(async () => [{ id: "sup-1", name: "Fornecedor X", tax_id: "PT123456789", default_category_id: "cat-1" }]),
+    listSuppliers: vi.fn(async () => [
+      { id: "sup-1", name: "Fornecedor X", tax_id: "PT123456789", default_category_id: "cat-1" },
+    ]),
     findDuplicateCandidates: vi.fn(async () => []),
     applyExtraction: vi.fn(async () => {
       calls.push("applyExtraction");
@@ -80,11 +92,20 @@ describe("runExtractionPipeline", () => {
     expect(applied.supplier?.id).toBe("sup-1");
     expect(applied.categoryId).toBe("cat-1");
     expect(applied.issues).toEqual([]);
-    expect(deps.incrementUsage).toHaveBeenCalledWith("org-1", { aiCalls: 1, aiFailures: 0, processed: 1 });
+    expect(deps.incrementUsage).toHaveBeenCalledWith("org-1", {
+      aiCalls: 1,
+      aiFailures: 0,
+      processed: 1,
+    });
   });
 
   it("AI failure: stores the failed extraction, marks the document failed and keeps the original", async () => {
-    const failure: ExtractionResult = { ok: false, ...base, errorCode: "timeout", errorMessage: "timed out" };
+    const failure: ExtractionResult = {
+      ok: false,
+      ...base,
+      errorCode: "timeout",
+      errorMessage: "timed out",
+    };
     const { deps, storage, calls } = makeDeps(failure);
     const outcome = await runExtractionPipeline(doc, "user-1", deps);
     expect(outcome).toEqual({ status: "failed", extractionId: "ext-1", errorCode: "timeout" });
@@ -96,7 +117,13 @@ describe("runExtractionPipeline", () => {
   });
 
   it("invalid AI output is rejected without touching document data", async () => {
-    const invalid: ExtractionResult = { ok: false, ...base, errorCode: "schema_mismatch", errorMessage: "bad", raw: { x: 1 } };
+    const invalid: ExtractionResult = {
+      ok: false,
+      ...base,
+      errorCode: "schema_mismatch",
+      errorMessage: "bad",
+      raw: { x: 1 },
+    };
     const { deps } = makeDeps(invalid);
     const outcome = await runExtractionPipeline(doc, "user-1", deps);
     expect(outcome.status).toBe("failed");

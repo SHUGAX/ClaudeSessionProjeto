@@ -1,6 +1,7 @@
 # Roadmap
 
 ## Next (high value)
+
 1. **Background processing queue** (Supabase Queues/pgmq or a worker) for
    large batches; the pipeline is already dependency-injected.
 2. **Email notifications** for due/overdue invoices (digest per user, opt-in).
@@ -9,7 +10,7 @@
 4. **MFA** enrollment for admins and optional per-tenant enforcement.
 5. **Field highlights**: ask the model for bounding boxes and overlay them in
    the pdf.js viewer.
-6. **AI assistant** with predefined, RLS-scoped tools (see AI_PROCESSING.md).
+6. **Assistant**: more tools (comparisons, VAT summaries), plan gating, conversation context.
 
 ## Email ingestion (design)
 
@@ -21,6 +22,7 @@ upload/finalize/process functions with actor type `system` and an
 unknown senders.
 
 ## Later
+
 - Approval workflows (approver role, multi-step validation).
 - Contracts: extension table (`counterparty`, `start_date`, `end_date`,
   `renewal_date`, `renewal_type`, `notice_period_days`, `contract_value`) and

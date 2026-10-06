@@ -58,19 +58,51 @@ export function SupplierForm({
         <FormMessage error={state?.error} />
       </div>
       <Field label={t("suppliers.fields.name")} htmlFor="s-name" className="sm:col-span-2">
-        <Input id="s-name" name="name" defaultValue={supplier?.name} required maxLength={300} disabled={disabled} />
+        <Input
+          id="s-name"
+          name="name"
+          defaultValue={supplier?.name}
+          required
+          maxLength={300}
+          disabled={disabled}
+        />
       </Field>
       <Field label={t("suppliers.fields.legalName")} htmlFor="s-legal">
-        <Input id="s-legal" name="legalName" defaultValue={supplier?.legal_name ?? ""} maxLength={300} disabled={disabled} />
+        <Input
+          id="s-legal"
+          name="legalName"
+          defaultValue={supplier?.legal_name ?? ""}
+          maxLength={300}
+          disabled={disabled}
+        />
       </Field>
       <Field label={t("suppliers.fields.taxId")} htmlFor="s-tax">
-        <Input id="s-tax" name="taxId" defaultValue={supplier?.tax_id ?? ""} maxLength={40} disabled={disabled} className="tabular" />
+        <Input
+          id="s-tax"
+          name="taxId"
+          defaultValue={supplier?.tax_id ?? ""}
+          maxLength={40}
+          disabled={disabled}
+          className="tabular"
+        />
       </Field>
       <Field label={t("suppliers.fields.taxCountry")} htmlFor="s-country">
-        <Input id="s-country" name="taxCountry" defaultValue={supplier?.tax_country ?? ""} maxLength={2} disabled={disabled} className="uppercase" />
+        <Input
+          id="s-country"
+          name="taxCountry"
+          defaultValue={supplier?.tax_country ?? ""}
+          maxLength={2}
+          disabled={disabled}
+          className="uppercase"
+        />
       </Field>
       <Field label={t("suppliers.fields.defaultCategory")} htmlFor="s-cat">
-        <Select id="s-cat" name="defaultCategoryId" defaultValue={supplier?.default_category_id ?? ""} disabled={disabled}>
+        <Select
+          id="s-cat"
+          name="defaultCategoryId"
+          defaultValue={supplier?.default_category_id ?? ""}
+          disabled={disabled}
+        >
           <option value="">{t("common.none")}</option>
           {categories.map((c) => (
             <option key={c.id} value={c.id}>
@@ -80,19 +112,52 @@ export function SupplierForm({
         </Select>
       </Field>
       <Field label={t("suppliers.fields.email")} htmlFor="s-email">
-        <Input id="s-email" name="email" type="email" defaultValue={supplier?.email ?? ""} maxLength={320} disabled={disabled} />
+        <Input
+          id="s-email"
+          name="email"
+          type="email"
+          defaultValue={supplier?.email ?? ""}
+          maxLength={320}
+          disabled={disabled}
+        />
       </Field>
       <Field label={t("suppliers.fields.phone")} htmlFor="s-phone">
-        <Input id="s-phone" name="phone" defaultValue={supplier?.phone ?? ""} maxLength={50} disabled={disabled} />
+        <Input
+          id="s-phone"
+          name="phone"
+          defaultValue={supplier?.phone ?? ""}
+          maxLength={50}
+          disabled={disabled}
+        />
       </Field>
       <Field label={t("suppliers.fields.iban")} htmlFor="s-iban">
-        <Input id="s-iban" name="iban" defaultValue={supplier?.iban ?? ""} maxLength={50} disabled={disabled} className="tabular" />
+        <Input
+          id="s-iban"
+          name="iban"
+          defaultValue={supplier?.iban ?? ""}
+          maxLength={50}
+          disabled={disabled}
+          className="tabular"
+        />
       </Field>
       <Field label={t("suppliers.fields.address")} htmlFor="s-address">
-        <Input id="s-address" name="address" defaultValue={supplier?.address ?? ""} maxLength={500} disabled={disabled} />
+        <Input
+          id="s-address"
+          name="address"
+          defaultValue={supplier?.address ?? ""}
+          maxLength={500}
+          disabled={disabled}
+        />
       </Field>
       <Field label={t("suppliers.fields.notes")} htmlFor="s-notes" className="sm:col-span-2">
-        <Textarea id="s-notes" name="notes" defaultValue={supplier?.notes ?? ""} maxLength={2000} rows={2} disabled={disabled} />
+        <Textarea
+          id="s-notes"
+          name="notes"
+          defaultValue={supplier?.notes ?? ""}
+          maxLength={2000}
+          rows={2}
+          disabled={disabled}
+        />
       </Field>
       {!disabled ? (
         <div className="flex justify-end sm:col-span-2">

@@ -25,17 +25,21 @@ export function AppFrame({
 
   const sidebar = (
     <div className="flex h-full flex-col">
-      <div className="px-3 pb-3 pt-4">{sidebarHeader}</div>
+      <div className="px-3 pt-4 pb-3">{sidebarHeader}</div>
       <div className="flex-1 overflow-y-auto px-3">
         <SidebarNav items={navItems} onNavigate={() => setOpen(false)} />
       </div>
-      {sidebarFooter ? <div className="border-t border-border px-3 py-3">{sidebarFooter}</div> : null}
+      {sidebarFooter ? (
+        <div className="border-border border-t px-3 py-3">{sidebarFooter}</div>
+      ) : null}
     </div>
   );
 
   return (
     <div className="flex min-h-dvh">
-      <aside className="sticky top-0 hidden h-dvh w-60 shrink-0 border-r border-border bg-surface lg:block">{sidebar}</aside>
+      <aside className="border-border bg-surface sticky top-0 hidden h-dvh w-60 shrink-0 border-r lg:block">
+        {sidebar}
+      </aside>
 
       {open ? (
         <div className="fixed inset-0 z-40 lg:hidden" role="dialog" aria-modal="true">
@@ -45,11 +49,11 @@ export function AppFrame({
             aria-label={t("common.close")}
             onClick={() => setOpen(false)}
           />
-          <aside className="absolute inset-y-0 left-0 w-72 max-w-[85vw] border-r border-border bg-surface shadow-xl">
+          <aside className="border-border bg-surface absolute inset-y-0 left-0 w-72 max-w-[85vw] border-r shadow-xl">
             <button
               type="button"
               onClick={() => setOpen(false)}
-              className="absolute right-2 top-3 rounded-md p-1.5 text-muted-foreground hover:bg-muted"
+              className="text-muted-foreground hover:bg-muted absolute top-3 right-2 rounded-md p-1.5"
               aria-label={t("common.close")}
             >
               <X className="size-4" />
@@ -60,10 +64,10 @@ export function AppFrame({
       ) : null}
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="sticky top-0 z-30 flex h-14 items-center gap-3 border-b border-border bg-surface/95 px-4 backdrop-blur sm:px-6">
+        <header className="border-border bg-surface/95 sticky top-0 z-30 flex h-14 items-center gap-3 border-b px-4 backdrop-blur sm:px-6">
           <button
             type="button"
-            className="-ml-1 rounded-md p-1.5 text-muted-foreground hover:bg-muted lg:hidden"
+            className="text-muted-foreground hover:bg-muted -ml-1 rounded-md p-1.5 lg:hidden"
             onClick={() => setOpen(true)}
             aria-label={t("nav.openMenu")}
           >

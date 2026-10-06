@@ -15,7 +15,17 @@ export async function generateMetadata(): Promise<Metadata> {
   return { title: t("settings.title") };
 }
 
-function UsageRow({ label, used, limit, unlimited }: { label: string; used: string; limit: string | null; unlimited: string }) {
+function UsageRow({
+  label,
+  used,
+  limit,
+  unlimited,
+}: {
+  label: string;
+  used: string;
+  limit: string | null;
+  unlimited: string;
+}) {
   return (
     <div className="flex items-center justify-between py-2 text-[13px]">
       <span className="text-muted-foreground">{label}</span>
@@ -41,11 +51,14 @@ export default async function SettingsPage({ params }: { params: Promise<{ slug:
       .select("default_currency, default_language, due_soon_days")
       .eq("organization_id", orgId)
       .maybeSingle(),
-    isAdmin ? supabase.rpc("organization_limits", { p_org: orgId }) : Promise.resolve({ data: null }),
+    isAdmin
+      ? supabase.rpc("organization_limits", { p_org: orgId })
+      : Promise.resolve({ data: null }),
     supabase.from("organizations").select("plans(name)").eq("id", orgId).maybeSingle(),
   ]);
   const l = limits.data?.[0];
-  const n = (v: number | null | undefined) => (v == null ? null : new Intl.NumberFormat(locale).format(v));
+  const n = (v: number | null | undefined) =>
+    v == null ? null : new Intl.NumberFormat(locale).format(v);
 
   return (
     <div className="max-w-4xl">
@@ -90,8 +103,13 @@ export default async function SettingsPage({ params }: { params: Promise<{ slug:
               title={t("settings.usage")}
               description={`${t("settings.plan")}: ${plan.data?.plans?.name ?? t("settings.noPlan")}`}
             />
-            <CardContent className="divide-y divide-border py-2">
-              <UsageRow label={t("settings.usersUsage")} used={n(l.active_users) ?? "0"} limit={n(l.max_users)} unlimited={t("settings.unlimited")} />
+            <CardContent className="divide-border divide-y py-2">
+              <UsageRow
+                label={t("settings.usersUsage")}
+                used={n(l.active_users) ?? "0"}
+                limit={n(l.max_users)}
+                unlimited={t("settings.unlimited")}
+              />
               <UsageRow
                 label={t("settings.documentsUsage")}
                 used={n(l.documents_this_month) ?? "0"}
@@ -107,10 +125,14 @@ export default async function SettingsPage({ params }: { params: Promise<{ slug:
               <UsageRow
                 label={t("settings.storageUsage")}
                 used={formatBytes(Number(l.storage_bytes), locale)}
-                limit={l.max_storage_bytes == null ? null : formatBytes(Number(l.max_storage_bytes), locale)}
+                limit={
+                  l.max_storage_bytes == null
+                    ? null
+                    : formatBytes(Number(l.max_storage_bytes), locale)
+                }
                 unlimited={t("settings.unlimited")}
               />
-              <p className="pt-3 text-xs text-muted-foreground">{t("settings.limitsHint")}</p>
+              <p className="text-muted-foreground pt-3 text-xs">{t("settings.limitsHint")}</p>
             </CardContent>
           </Card>
         ) : null}
@@ -118,7 +140,7 @@ export default async function SettingsPage({ params }: { params: Promise<{ slug:
         <Card>
           <CardHeader title={t("settings.dataPrivacy")} />
           <CardContent>
-            <p className="text-[13px] text-muted-foreground">{t("settings.dataPrivacyBody")}</p>
+            <p className="text-muted-foreground text-[13px]">{t("settings.dataPrivacyBody")}</p>
           </CardContent>
         </Card>
       </div>

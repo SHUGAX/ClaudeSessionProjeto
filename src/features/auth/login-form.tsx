@@ -32,12 +32,18 @@ export function LoginForm({
         label={t("auth.password")}
         htmlFor="password"
         aside={
-          <Link href={forgotPasswordHref} className="text-xs text-primary hover:underline">
+          <Link href={forgotPasswordHref} className="text-primary text-xs hover:underline">
             {t("auth.forgotPassword")}
           </Link>
         }
       >
-        <Input id="password" name="password" type="password" autoComplete="current-password" required />
+        <Input
+          id="password"
+          name="password"
+          type="password"
+          autoComplete="current-password"
+          required
+        />
       </Field>
       <SubmitButton className="mt-1 w-full" pendingLabel={t("auth.signingIn")}>
         {t("auth.signIn")}

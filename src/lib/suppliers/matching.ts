@@ -1,8 +1,27 @@
 import { normalizeTaxId } from "@/lib/validation/tax-id";
 
 const LEGAL_SUFFIXES = [
-  "lda", "limitada", "sa", "s a", "unipessoal", "sociedade anonima", "sgps", "crl", "ace",
-  "ltd", "limited", "inc", "llc", "gmbh", "sl", "sas", "sarl", "bv", "nv", "plc", "co",
+  "lda",
+  "limitada",
+  "sa",
+  "s a",
+  "unipessoal",
+  "sociedade anonima",
+  "sgps",
+  "crl",
+  "ace",
+  "ltd",
+  "limited",
+  "inc",
+  "llc",
+  "gmbh",
+  "sl",
+  "sas",
+  "sarl",
+  "bv",
+  "nv",
+  "plc",
+  "co",
 ];
 
 /** Canonical form of a company name for comparison ("EDP Comercial, S.A." → "edp comercial"). */
@@ -92,7 +111,8 @@ export function matchSupplier<T extends SupplierRecord>(
     // Different, known tax IDs mean different legal entities.
     if (taxId && supplierTax && supplierTax !== taxId) continue;
     const score = nameSimilarity(extracted.name, supplier.name);
-    if (score >= NAME_SUGGESTION_THRESHOLD && (!best || score > best.score)) best = { supplier, score };
+    if (score >= NAME_SUGGESTION_THRESHOLD && (!best || score > best.score))
+      best = { supplier, score };
   }
   return best ? { kind: "name_suggestion", ...best } : { kind: "none" };
 }

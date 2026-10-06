@@ -30,7 +30,13 @@ export function AcceptInvitationNewUserForm({ token, email }: { token: string; e
   );
 }
 
-export function AcceptInvitationExistingUserForm({ token, email }: { token: string; email: string }) {
+export function AcceptInvitationExistingUserForm({
+  token,
+  email,
+}: {
+  token: string;
+  email: string;
+}) {
   const { t } = useI18n();
   const [state, action] = useActionState(acceptInvitationExistingUserAction, undefined);
   return (

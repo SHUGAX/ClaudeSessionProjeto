@@ -11,14 +11,14 @@ always carries `organization_id`.
 
 ## Hosts and routing (`src/proxy.ts`, `src/lib/tenancy/host.ts`)
 
-| Host | Meaning | Internal route |
-|---|---|---|
-| `example.com`, `www.`, `app.` | central app (login, selector, invitations) | as is |
-| `admin.example.com` | SaaS admin | `/admin/…` (central auth pages stay central) |
-| `{slug}.example.com` | tenant | `/t/{slug}/…` |
-| reserved names (`api`, `docs`, `mail`, `auth`, …) | central | as is |
-| nested / malformed subdomain | rejected | 404 |
-| unknown host (e.g. `*.vercel.app` preview) | central | as is |
+| Host                                              | Meaning                                    | Internal route                               |
+| ------------------------------------------------- | ------------------------------------------ | -------------------------------------------- |
+| `example.com`, `www.`, `app.`                     | central app (login, selector, invitations) | as is                                        |
+| `admin.example.com`                               | SaaS admin                                 | `/admin/…` (central auth pages stay central) |
+| `{slug}.example.com`                              | tenant                                     | `/t/{slug}/…`                                |
+| reserved names (`api`, `docs`, `mail`, `auth`, …) | central                                    | as is                                        |
+| nested / malformed subdomain                      | rejected                                   | 404                                          |
+| unknown host (e.g. `*.vercel.app` preview)        | central                                    | as is                                        |
 
 Global paths are never rewritten: `/api`, `/auth`, `/legal`, `/invite`,
 `/_next`, static files. Requests for `/t/…` or `/admin` on a tenant host return

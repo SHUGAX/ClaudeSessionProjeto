@@ -10,7 +10,7 @@ export default async function NoAccessPage() {
   const { t } = await getI18n();
   return (
     <AuthShell title={t("auth.noAccessTitle")} subtitle={t("auth.noAccessBody")}>
-      <div className="flex flex-col gap-3 text-[13px] text-muted-foreground">
+      <div className="text-muted-foreground flex flex-col gap-3 text-[13px]">
         <span>{t("auth.loggedInAs", { email: user.email })}</span>
         <SignOutButton label={t("auth.useAnotherAccount")} />
       </div>

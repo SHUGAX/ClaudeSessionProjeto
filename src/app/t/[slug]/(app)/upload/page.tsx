@@ -18,7 +18,11 @@ export default async function UploadPage({ params }: { params: Promise<{ slug: s
   return (
     <div className="mx-auto max-w-3xl">
       <PageHeader title={t("upload.title")} description={t("upload.subtitle")} />
-      {can.uploadDocuments(ctx.role) ? <Uploader /> : <Callout tone="warning">{t("upload.errors.forbidden")}</Callout>}
+      {can.uploadDocuments(ctx.role) ? (
+        <Uploader />
+      ) : (
+        <Callout tone="warning">{t("upload.errors.forbidden")}</Callout>
+      )}
     </div>
   );
 }

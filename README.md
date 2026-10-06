@@ -91,7 +91,12 @@ append-only audit log.
 - **Observability/security**: structured JSON logger with redaction, error
   reporting hook, `/api/health`, CSP and security headers, same-origin checks,
   rate limiting in Postgres, cron maintenance endpoint.
-- **Tests**: 114 unit tests, 46 database/RLS tests, 11 Playwright end-to-end
+- **AI assistant (safe tool-based)**: questions such as "Quanto gastámos com
+  X este ano?" are mapped (Gemini structured output, or a deterministic
+  pt/en rule parser in mock mode) to one of six predefined read-only tools,
+  executed with the user's own RLS-scoped session; answers are templated from
+  the returned rows (the model never produces figures, never writes SQL).
+- **Tests**: 128 unit tests, 46 database/RLS tests, 12 Playwright end-to-end
   tests (+1 opt-in subdomain test) — all passing against a real local
   Supabase stack.
 
@@ -108,7 +113,9 @@ append-only audit log.
 
 ### NOT IMPLEMENTED (by design or deferred — see docs/ROADMAP.md)
 
-- AI chat assistant (architecture documented in `docs/AI_PROCESSING.md`).
+- Free-form assistant answers beyond the six predefined tools; conversation
+  memory; plan-based gating of the assistant (`plans.features.assistant` exists
+  but is not enforced).
 - Email ingestion, ERP integrations, approval workflows, contract-specific
   fields, custom domains automation, SSO, data export UI, retention policies,
   vector/semantic search, field bounding-box highlights.
@@ -174,12 +181,12 @@ pnpm dev                             # http://localhost:3000
 
 Demo accounts (password `Demo-Password-2026`, synthetic data only):
 
-| Email | Role |
-|---|---|
-| `admin@docuflow.test` | platform (SaaS) administrator |
-| `ana@empresa-a.test` | owner of Empresa A |
-| `carla@empresa-a.test` | viewer of Empresa A |
-| `bruno@empresa-b.test` | owner of Empresa B |
+| Email                   | Role                                   |
+| ----------------------- | -------------------------------------- |
+| `admin@docuflow.test`   | platform (SaaS) administrator          |
+| `ana@empresa-a.test`    | owner of Empresa A                     |
+| `carla@empresa-a.test`  | viewer of Empresa A                    |
+| `bruno@empresa-b.test`  | owner of Empresa B                     |
 | `duarte@consultor.test` | member of both (organization selector) |
 
 Local dev uses **path routing** (`/t/empresa-a`). To try subdomains locally see
@@ -193,17 +200,17 @@ binary + PostgREST + Storage API + gateway) on a local PostgreSQL — see
 
 See [`.env.example`](.env.example) (all variables documented). Summary:
 
-| Variable | Scope | Purpose |
-|---|---|---|
-| `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY` | public | Supabase project |
-| `SUPABASE_SERVICE_ROLE_KEY` | **server only** | system writes, onboarding |
-| `NEXT_PUBLIC_ROOT_DOMAIN` | public | e.g. `example.com` |
-| `NEXT_PUBLIC_TENANT_ROUTING` | public | `subdomain` (prod) or `path` (dev) |
-| `APP_URL` | server | central app URL, e.g. `https://app.example.com` |
-| `AUTH_COOKIE_DOMAIN` | server | `.example.com` in subdomain mode |
-| `AI_PROVIDER`, `GEMINI_API_KEY`, `GEMINI_MODEL`, `AI_TIMEOUT_MS` | server | AI |
-| `EMAIL_PROVIDER`, `EMAIL_FROM`, `RESEND_API_KEY` | server | email |
-| `LOG_LEVEL`, `CRON_SECRET` | server | operations |
+| Variable                                                         | Scope           | Purpose                                         |
+| ---------------------------------------------------------------- | --------------- | ----------------------------------------------- |
+| `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`      | public          | Supabase project                                |
+| `SUPABASE_SERVICE_ROLE_KEY`                                      | **server only** | system writes, onboarding                       |
+| `NEXT_PUBLIC_ROOT_DOMAIN`                                        | public          | e.g. `example.com`                              |
+| `NEXT_PUBLIC_TENANT_ROUTING`                                     | public          | `subdomain` (prod) or `path` (dev)              |
+| `APP_URL`                                                        | server          | central app URL, e.g. `https://app.example.com` |
+| `AUTH_COOKIE_DOMAIN`                                             | server          | `.example.com` in subdomain mode                |
+| `AI_PROVIDER`, `GEMINI_API_KEY`, `GEMINI_MODEL`, `AI_TIMEOUT_MS` | server          | AI                                              |
+| `EMAIL_PROVIDER`, `EMAIL_FROM`, `RESEND_API_KEY`                 | server          | email                                           |
+| `LOG_LEVEL`, `CRON_SECRET`                                       | server          | operations                                      |
 
 Never commit `.env*` files (git-ignored).
 
@@ -240,7 +247,7 @@ See [`docs/AI_PROCESSING.md`](docs/AI_PROCESSING.md).
 
 ```bash
 pnpm lint && pnpm typecheck
-pnpm test:unit                                                       # 114 tests, no services
+pnpm test:unit                                                       # 128 tests, no services
 TEST_DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:5432/postgres pnpm test:db   # 46 RLS tests
 pnpm test:e2e                                                        # needs Supabase + seed (docs/TESTING.md)
 pnpm build

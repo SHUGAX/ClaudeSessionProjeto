@@ -72,7 +72,10 @@ function dec(value: string | null): Decimal | null {
  * warnings are shown but never prevent it (legitimate invoices can be unusual,
  * e.g. withholding tax makes total ≠ subtotal + VAT).
  */
-export function validateDocument(doc: ValidatableDocument, ctx: ValidationContext): ValidationIssue[] {
+export function validateDocument(
+  doc: ValidatableDocument,
+  ctx: ValidationContext,
+): ValidationIssue[] {
   const issues: ValidationIssue[] = [];
   const isMoneyDoc = MONEY_TYPES.has(doc.documentType);
 
@@ -81,12 +84,17 @@ export function validateDocument(doc: ValidatableDocument, ctx: ValidationContex
     if (!doc.supplierName && !doc.supplierTaxId) {
       issues.push({ code: "missing_supplier", severity: "error", field: "supplierName" });
     }
-    if (!doc.issueDate) issues.push({ code: "required_field", severity: "error", field: "issueDate" });
-    if (doc.total == null) issues.push({ code: "required_field", severity: "error", field: "total" });
+    if (!doc.issueDate)
+      issues.push({ code: "required_field", severity: "error", field: "issueDate" });
+    if (doc.total == null)
+      issues.push({ code: "required_field", severity: "error", field: "total" });
     if (!doc.documentNumber) {
       issues.push({
         code: "required_field",
-        severity: doc.documentType === "invoice" || doc.documentType === "credit_note" ? "error" : "warning",
+        severity:
+          doc.documentType === "invoice" || doc.documentType === "credit_note"
+            ? "error"
+            : "warning",
         field: "documentNumber",
       });
     }
@@ -95,7 +103,8 @@ export function validateDocument(doc: ValidatableDocument, ctx: ValidationContex
   // Dates
   for (const field of ["issueDate", "dueDate"] as const) {
     const value = doc[field];
-    if (value && !isValidIsoDate(value)) issues.push({ code: "invalid_date", severity: "error", field });
+    if (value && !isValidIsoDate(value))
+      issues.push({ code: "invalid_date", severity: "error", field });
   }
   if (doc.issueDate && isValidIsoDate(doc.issueDate)) {
     if (doc.issueDate > addDaysIso(ctx.today, 1)) {
@@ -149,8 +158,17 @@ export function validateDocument(doc: ValidatableDocument, ctx: ValidationContex
   }
 
   // Identifiers
-  if (doc.supplierTaxId && looksLikePortugueseNif(doc.supplierTaxId) && !isValidPortugueseNif(doc.supplierTaxId.replace(/[\s.-]/g, ""))) {
-    issues.push({ code: "invalid_nif", severity: "warning", field: "supplierTaxId", params: { taxId: doc.supplierTaxId } });
+  if (
+    doc.supplierTaxId &&
+    looksLikePortugueseNif(doc.supplierTaxId) &&
+    !isValidPortugueseNif(doc.supplierTaxId.replace(/[\s.-]/g, ""))
+  ) {
+    issues.push({
+      code: "invalid_nif",
+      severity: "warning",
+      field: "supplierTaxId",
+      params: { taxId: doc.supplierTaxId },
+    });
   }
   if (doc.iban && !isValidIban(doc.iban)) {
     issues.push({ code: "invalid_iban", severity: "warning", field: "iban" });
@@ -159,7 +177,11 @@ export function validateDocument(doc: ValidatableDocument, ctx: ValidationContex
   // Duplicates
   for (const match of ctx.duplicates) {
     const code: IssueCode =
-      match.kind === "exact_file" ? "exact_duplicate" : match.kind === "same_number" ? "possible_duplicate" : "weak_duplicate";
+      match.kind === "exact_file"
+        ? "exact_duplicate"
+        : match.kind === "same_number"
+          ? "possible_duplicate"
+          : "weak_duplicate";
     issues.push({
       code,
       severity: match.kind === "same_date_total" ? "info" : "warning",

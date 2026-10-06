@@ -27,15 +27,17 @@ export function DialogContent({
       <DialogPrimitive.Overlay className="fixed inset-0 z-40 bg-slate-950/30 backdrop-blur-[1px]" />
       <DialogPrimitive.Content
         className={cn(
-          "fixed left-1/2 top-1/2 z-50 max-h-[90vh] w-[calc(100vw-2rem)] max-w-lg -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-lg border border-border bg-surface p-5 shadow-xl focus:outline-none",
+          "border-border bg-surface fixed top-1/2 left-1/2 z-50 max-h-[90vh] w-[calc(100vw-2rem)] max-w-lg -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-lg border p-5 shadow-xl focus:outline-none",
           className,
         )}
       >
         <div className="mb-4 flex items-start justify-between gap-4">
           <div>
-            <DialogPrimitive.Title className="text-base font-semibold">{title}</DialogPrimitive.Title>
+            <DialogPrimitive.Title className="text-base font-semibold">
+              {title}
+            </DialogPrimitive.Title>
             {description ? (
-              <DialogPrimitive.Description className="mt-1 text-[13px] text-muted-foreground">
+              <DialogPrimitive.Description className="text-muted-foreground mt-1 text-[13px]">
                 {description}
               </DialogPrimitive.Description>
             ) : (
@@ -43,7 +45,7 @@ export function DialogContent({
             )}
           </div>
           <DialogPrimitive.Close
-            className="rounded-md p-1 text-muted-foreground hover:bg-muted hover:text-foreground"
+            className="text-muted-foreground hover:bg-muted hover:text-foreground rounded-md p-1"
             aria-label={closeLabel}
           >
             <X className="size-4" />

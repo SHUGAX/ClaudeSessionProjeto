@@ -11,7 +11,11 @@ export async function generateMetadata(): Promise<Metadata> {
   return { title: t("auth.loginTitle") };
 }
 
-export default async function LoginPage({ searchParams }: { searchParams: Promise<{ next?: string }> }) {
+export default async function LoginPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ next?: string }>;
+}) {
   const { next } = await searchParams;
   if (await getSessionUser()) redirect(await postLoginDestination(next));
   const { t } = await getI18n();
