@@ -24,7 +24,7 @@
    `APP_URL=https://app.example.com`, `AUTH_COOKIE_DOMAIN=.example.com`,
    `AI_PROVIDER=gemini`, `GEMINI_*`, `EMAIL_*`, `CRON_SECRET`,
    `SUPABASE_SERVICE_ROLE_KEY` (sensitive).
-3. Region close to Supabase (e.g. `fra1`/`cdg1` with an EU Supabase project).
+3. Region: `vercel.json` pins functions to `fra1` (Frankfurt), next to an EU (Frankfurt) Supabase project. Change both together.
 4. `vercel.json` schedules `/api/cron/maintenance` daily (Vercel sends
    `Authorization: Bearer $CRON_SECRET`).
 5. Functions: `/api/documents/[id]/process` uses `maxDuration = 120`
