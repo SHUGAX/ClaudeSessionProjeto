@@ -39,30 +39,33 @@ export class GeminiExtractionProvider implements DocumentExtractionProvider {
     let text: string | undefined;
     let usage: { inputTokens?: number; outputTokens?: number } | undefined;
     try {
-      const response = await this.client.models.generateContent({
-        model: this.model,
-        contents: [
-          {
-            role: "user",
-            parts: [
-              {
-                inlineData: {
-                  mimeType: input.mimeType,
-                  data: Buffer.from(input.bytes).toString("base64"),
+      const deadline = started + this.timeoutMs;
+      const response = await withRetries(deadline, (signal) =>
+        this.client.models.generateContent({
+          model: this.model,
+          contents: [
+            {
+              role: "user",
+              parts: [
+                {
+                  inlineData: {
+                    mimeType: input.mimeType,
+                    data: Buffer.from(input.bytes).toString("base64"),
+                  },
                 },
-              },
-              { text: INVOICE_USER_PROMPT },
-            ],
+                { text: INVOICE_USER_PROMPT },
+              ],
+            },
+          ],
+          config: {
+            systemInstruction: INVOICE_SYSTEM_INSTRUCTION,
+            responseMimeType: "application/json",
+            responseJsonSchema: extractionJsonSchema,
+            temperature: 0,
+            abortSignal: signal,
           },
-        ],
-        config: {
-          systemInstruction: INVOICE_SYSTEM_INSTRUCTION,
-          responseMimeType: "application/json",
-          responseJsonSchema: extractionJsonSchema,
-          temperature: 0,
-          abortSignal: AbortSignal.timeout(this.timeoutMs),
-        },
-      });
+        }),
+      );
       text = response.text;
       usage = {
         inputTokens: response.usageMetadata?.promptTokenCount,
@@ -163,4 +166,31 @@ export function providerErrorDetail(error: unknown): string | null {
     .replace(/\s+/g, " ")
     .trim()
     .slice(0, 300);
+}
+
+const RETRYABLE_STATUS = new Set([429, 500, 502, 503, 504]);
+const RETRY_DELAYS_MS = [2_000, 5_000, 10_000];
+
+/**
+ * Retries transient provider failures (overload / rate limit / 5xx) with
+ * backoff, always within the overall deadline. Other errors fail immediately.
+ */
+export async function withRetries<T>(
+  deadline: number,
+  call: (signal: AbortSignal) => Promise<T>,
+  sleep: (ms: number) => Promise<void> = (ms) => new Promise((r) => setTimeout(r, ms)),
+): Promise<T> {
+  for (let attempt = 0; ; attempt++) {
+    const remaining = deadline - Date.now();
+    try {
+      return await call(AbortSignal.timeout(Math.max(1_000, remaining)));
+    } catch (error) {
+      const status = (error as { status?: number }).status;
+      const delay = RETRY_DELAYS_MS[attempt];
+      const retryable = status !== undefined && RETRYABLE_STATUS.has(status);
+      if (!retryable || delay === undefined || Date.now() + delay + 5_000 > deadline) throw error;
+      logger.info("ai_provider_retry", { status, attempt: attempt + 1 });
+      await sleep(delay);
+    }
+  }
 }

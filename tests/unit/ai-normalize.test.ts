@@ -138,3 +138,56 @@ describe("providerErrorDetail", () => {
     expect(providerErrorDetail("nope")).toBeNull();
   });
 });
+
+describe("withRetries", () => {
+  const fail = (status: number) => Object.assign(new Error(`HTTP ${status}`), { status });
+  const noSleep = async () => undefined;
+
+  it("retries transient errors then succeeds", async () => {
+    const { withRetries } = await import("@/lib/ai/gemini");
+    let calls = 0;
+    const result = await withRetries(
+      Date.now() + 120_000,
+      async () => {
+        calls++;
+        if (calls < 3) throw fail(503);
+        return "ok";
+      },
+      noSleep,
+    );
+    expect(result).toBe("ok");
+    expect(calls).toBe(3);
+  });
+
+  it("does not retry permanent errors", async () => {
+    const { withRetries } = await import("@/lib/ai/gemini");
+    let calls = 0;
+    await expect(
+      withRetries(
+        Date.now() + 120_000,
+        async () => {
+          calls++;
+          throw fail(404);
+        },
+        noSleep,
+      ),
+    ).rejects.toThrow("HTTP 404");
+    expect(calls).toBe(1);
+  });
+
+  it("gives up after the last attempt", async () => {
+    const { withRetries } = await import("@/lib/ai/gemini");
+    let calls = 0;
+    await expect(
+      withRetries(
+        Date.now() + 120_000,
+        async () => {
+          calls++;
+          throw fail(429);
+        },
+        noSleep,
+      ),
+    ).rejects.toThrow("HTTP 429");
+    expect(calls).toBe(4);
+  });
+});
