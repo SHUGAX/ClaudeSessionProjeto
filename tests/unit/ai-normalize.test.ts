@@ -122,3 +122,19 @@ describe("MockExtractionProvider", () => {
     expect(invalid.ok === false && invalid.errorCode).toBe("schema_mismatch");
   });
 });
+
+describe("providerErrorDetail", () => {
+  it("extracts the provider message and masks keys", async () => {
+    const { providerErrorDetail } = await import("@/lib/ai/gemini");
+    const err = new Error(
+      'got status: 404 Not Found. {"error":{"code":404,"message":"models/gemini-x is not found for API version v1beta","status":"NOT_FOUND"}}',
+    );
+    expect(providerErrorDetail(err)).toBe(
+      "NOT_FOUND: models/gemini-x is not found for API version v1beta",
+    );
+    expect(providerErrorDetail(new Error("bad key AIzaSyA1234567890abcdefghijklmnop"))).toBe(
+      "bad key [key]",
+    );
+    expect(providerErrorDetail("nope")).toBeNull();
+  });
+});

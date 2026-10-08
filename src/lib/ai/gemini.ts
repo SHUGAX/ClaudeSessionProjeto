@@ -83,11 +83,13 @@ export class GeminiExtractionProvider implements DocumentExtractionProvider {
       const isTimeout =
         error instanceof Error && (error.name === "TimeoutError" || error.name === "AbortError");
       const status = (error as { status?: number }).status;
+      const detail = providerErrorDetail(error);
       logger.warn("ai_provider_error", {
         provider: this.name,
         documentId: input.documentId,
         status,
         timeout: isTimeout,
+        detail,
       });
       return {
         ok: false,
@@ -95,7 +97,7 @@ export class GeminiExtractionProvider implements DocumentExtractionProvider {
         errorCode: isTimeout ? "timeout" : "provider_unavailable",
         errorMessage: isTimeout
           ? "The AI provider timed out"
-          : `The AI provider request failed${status ? ` (HTTP ${status})` : ""}`,
+          : `The AI provider request failed${status ? ` (HTTP ${status})` : ""}${detail ? `: ${detail}` : ""}`,
         durationMs: Date.now() - started,
       };
     }
@@ -133,4 +135,32 @@ export class GeminiExtractionProvider implements DocumentExtractionProvider {
       usage,
     };
   }
+}
+
+/**
+ * Short, non-sensitive description of a provider error (e.g. "models/x is not
+ * found", "API key not valid"). Never contains document content; API keys are
+ * masked defensively.
+ */
+export function providerErrorDetail(error: unknown): string | null {
+  if (!(error instanceof Error) || !error.message) return null;
+  let message = error.message;
+  const jsonStart = message.indexOf("{");
+  if (jsonStart !== -1) {
+    try {
+      const parsed = JSON.parse(message.slice(jsonStart)) as {
+        error?: { message?: string; status?: string };
+      };
+      if (parsed.error?.message) {
+        message = `${parsed.error.status ? `${parsed.error.status}: ` : ""}${parsed.error.message}`;
+      }
+    } catch {
+      // keep the raw message
+    }
+  }
+  return message
+    .replace(/AIza[0-9A-Za-z_-]{20,}/g, "[key]")
+    .replace(/\s+/g, " ")
+    .trim()
+    .slice(0, 300);
 }

@@ -82,7 +82,7 @@ export default async function DocumentReviewPage({
       supabase
         .from("document_extractions")
         .select(
-          "id, provider, model, prompt_version, status, error_code, processing_duration_ms, confidence, structured_data, created_at",
+          "id, provider, model, prompt_version, status, error_code, error_message, processing_duration_ms, confidence, structured_data, created_at",
         )
         .eq("document_id", id)
         .order("created_at", { ascending: false })
@@ -311,6 +311,7 @@ export default async function DocumentReviewPage({
               promptVersion: x.prompt_version,
               status: x.status,
               errorCode: x.error_code,
+              errorMessage: x.error_message,
               durationMs: x.processing_duration_ms,
               confidence: (x.confidence as { overall?: number | null } | null)?.overall ?? null,
               createdAt: x.created_at,

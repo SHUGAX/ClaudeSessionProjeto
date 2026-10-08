@@ -18,6 +18,7 @@ export interface ExtractionEntry {
   promptVersion: string;
   status: string;
   errorCode: string | null;
+  errorMessage: string | null;
   durationMs: number | null;
   confidence: number | null;
   createdAt: string;
@@ -112,6 +113,11 @@ export function HistoryPanel({
                   {x.status === "error" ? (
                     <span className="text-danger ml-2">
                       {t("review.extractionError", { code: x.errorCode ?? "?" })}
+                      {x.errorMessage ? (
+                        <span className="mt-0.5 block font-normal break-words">
+                          {x.errorMessage}
+                        </span>
+                      ) : null}
                     </span>
                   ) : x.confidence != null ? (
                     <span className="ml-2">
