@@ -29,7 +29,12 @@
 1. **Claim** atomically (`uploaded | failed | review_required`, or stale
    `processing` > 5 min) → `processing`.
 2. **Download** the original (service role) — the file is never modified.
-3. **Extract** via provider. Amounts are requested as strings; Portuguese
+3. **AT QR code**: `findQrCodes` (pdf.js + @napi-rs/canvas + jsQR, ≤20 s)
+   looks for the Portaria 195/2020 QR code; `parseAtQr` validates it.
+   **Extract** via provider; QR fiscal fields override the AI
+   (`mergeQrIntoExtraction`, provider `…+at_qr`); if the AI fails but the QR
+   is valid, a second extraction with provider `at_qr` is used.
+   The AI step: Amounts are requested as strings; Portuguese
    decimal separators, multi-page documents, several VAT rates,
    supplier-vs-customer and total-vs-VAT distinctions are covered in the prompt.
 4. **Persist** the extraction record (also on failure).
@@ -95,3 +100,12 @@ Tools: `spend_by_supplier`, `total_spend` (optionally by category),
 `top_suppliers`, `spend_by_category`, `invoices_due` (overdue / 7 / 30 days),
 `documents_to_review`. Unknown or ambiguous supplier names produce an explicit
 "not found" answer instead of a broader total.
+
+## Document chat (per-document Q&A)
+
+`askDocumentAction` loads ONE document's context through the user's session
+(RLS + organization filter: fields, lines, VAT breakdown, supplier totals this
+year) and sends it with the whole conversation (last 12 turns) to Gemini as a
+data-only system instruction (`document-qa@1.0.0`). Without Gemini, or when it
+fails, `answerFromRules` answers deterministically. Questions are never logged.
+Reached from the review page or by scanning the invoice's QR code (`/scan`).

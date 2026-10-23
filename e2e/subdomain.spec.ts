@@ -10,7 +10,9 @@ import { PASSWORD } from "./helpers";
 const root = process.env.E2E_SUBDOMAIN_ROOT;
 const host = root?.split(":")[0];
 
-test.use({ launchOptions: { args: [`--host-resolver-rules=MAP *.${host ?? "example.test"} 127.0.0.1`] } });
+test.use({
+  launchOptions: { args: [`--host-resolver-rules=MAP *.${host ?? "example.test"} 127.0.0.1`] },
+});
 
 test.describe("subdomain routing", () => {
   test.skip(!root, "set E2E_SUBDOMAIN_ROOT to run");

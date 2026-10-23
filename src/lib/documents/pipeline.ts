@@ -1,6 +1,9 @@
 import type { InvoiceExtraction } from "@/lib/ai/schema";
 import type { DocumentExtractionProvider, ExtractionResult } from "@/lib/ai/types";
 import { matchSupplier, type SupplierRecord } from "@/lib/suppliers/matching";
+import { normalizeTaxId } from "@/lib/validation/tax-id";
+import { parseAtQr, type AtQrData } from "./at-qrcode";
+import { mergeQrIntoExtraction } from "./qr-merge";
 import {
   findDuplicateMatches,
   type DuplicateCandidate,
@@ -38,6 +41,8 @@ export interface PipelineDeps {
   /** Atomically moves the document to "processing"; false if not allowed / already running. */
   claimForProcessing(doc: PipelineDocument, actorUserId: string): Promise<boolean>;
   downloadOriginal(doc: PipelineDocument): Promise<Uint8Array>;
+  /** Decoded QR code payloads found in the original (best effort, never throws). */
+  findQrCodes(bytes: Uint8Array, mimeType: string | null): Promise<string[]>;
   /** Appends an immutable extraction record and returns its id. */
   saveExtraction(
     doc: PipelineDocument,
@@ -106,11 +111,57 @@ export async function runExtractionPipeline(
   let extractionId: string | null = null;
   try {
     const bytes = await deps.downloadOriginal(doc);
-    const result = await deps.provider.extractInvoice({
+
+    // 1. Portuguese AT QR code: authoritative fiscal values, no AI needed.
+    let qr: { data: AtQrData; payload: string } | null = null;
+    for (const payload of await deps.findQrCodes(bytes, doc.mimeType)) {
+      const parsed = parseAtQr(payload);
+      if (parsed.ok) {
+        qr = { data: parsed.data, payload };
+        break;
+      }
+    }
+
+    // 2. AI extraction for everything else (supplier name, due date, lines…).
+    let result = await deps.provider.extractInvoice({
       bytes,
       mimeType: doc.mimeType ?? "application/pdf",
       documentId: doc.id,
     });
+    const aiFailed = !result.ok;
+    const suppliers = await deps.listSuppliers(doc.organizationId);
+
+    if (qr) {
+      const knownSupplier = suppliers.find(
+        (s) => normalizeTaxId(s.tax_id) === normalizeTaxId(qr.data.issuerTaxId),
+      );
+      if (result.ok) {
+        result = {
+          ...result,
+          provider: `${result.provider}+at_qr`,
+          raw: { model: result.raw, at_qr: qr.payload },
+          data: mergeQrIntoExtraction(
+            result.data,
+            qr.data,
+            qr.payload,
+            knownSupplier?.name ?? null,
+          ),
+        };
+      } else {
+        // Keep the failed AI attempt in the history, then continue with the QR code alone.
+        await deps.saveExtraction(doc, result, actorUserId);
+        result = {
+          ok: true,
+          provider: "at_qr",
+          model: "portaria-195-2020",
+          promptVersion: "n/a",
+          schemaVersion: result.schemaVersion,
+          raw: { at_qr: qr.payload, ai_error: result.errorCode },
+          data: mergeQrIntoExtraction(null, qr.data, qr.payload, knownSupplier?.name ?? null),
+          durationMs: 0,
+        };
+      }
+    }
     extractionId = await deps.saveExtraction(doc, result, actorUserId);
 
     if (!result.ok) {
@@ -127,7 +178,6 @@ export async function runExtractionPipeline(
     }
 
     const data = result.data;
-    const suppliers = await deps.listSuppliers(doc.organizationId);
     const match = matchSupplier(
       { name: data.supplier.name, taxId: data.supplier.taxId },
       suppliers,
@@ -144,6 +194,7 @@ export async function runExtractionPipeline(
       issueDate: data.issueDate,
       total: data.total,
       fileSha256: doc.fileSha256,
+      atcud: data.atcud ?? null,
     };
     const duplicates = findDuplicateMatches(
       subject,
@@ -164,7 +215,7 @@ export async function runExtractionPipeline(
         iban: data.iban,
         lineItems: data.lineItems,
       },
-      { today: await deps.today(doc.organizationId), duplicates },
+      { today: await deps.today(doc.organizationId), duplicates, atStatus: data.atStatus ?? null },
     );
 
     await deps.applyExtraction(
@@ -180,13 +231,19 @@ export async function runExtractionPipeline(
       actorUserId,
     );
     await deps.recordValidationEvent(doc, issues, actorUserId);
-    await deps.incrementUsage(doc.organizationId, { aiCalls: 1, aiFailures: 0, processed: 1 });
+    await deps.incrementUsage(doc.organizationId, {
+      aiCalls: 1,
+      aiFailures: aiFailed ? 1 : 0,
+      processed: 1,
+    });
     await deps.audit(doc, "document.extracted", actorUserId, {
       extractionId,
       provider: result.provider,
       model: result.model,
       promptVersion: result.promptVersion,
       durationMs: result.durationMs,
+      atQrCode: Boolean(qr),
+      aiFailed,
       issues: issues.map((i) => i.code),
     });
     await deps.afterProcessing(doc.organizationId);

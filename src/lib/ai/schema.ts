@@ -138,7 +138,25 @@ export interface InvoiceExtraction {
   purchaseOrder: string | null;
   confidence: RawExtraction["confidence"];
   warnings: string[];
+  /** Fields whose value comes from the AT QR code (authoritative, not AI). */
+  qrFields?: QrField[];
+  atcud?: string | null;
+  atQrPayload?: string | null;
+  /** AT document status from the QR code (N normal, A anulado, …). */
+  atStatus?: string | null;
 }
+
+export type QrField =
+  | "documentType"
+  | "supplierTaxId"
+  | "customerTaxId"
+  | "documentNumber"
+  | "issueDate"
+  | "currency"
+  | "subtotal"
+  | "taxTotal"
+  | "total"
+  | "supplierName";
 
 /**
  * JSON Schema sent to the model (structured output). Mirrors rawExtractionSchema.

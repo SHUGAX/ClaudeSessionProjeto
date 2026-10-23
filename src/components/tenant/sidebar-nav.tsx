@@ -6,6 +6,7 @@ import {
   FileText,
   FolderTree,
   LayoutDashboard,
+  ScanLine,
   ScrollText,
   Settings,
   Truck,
@@ -30,6 +31,7 @@ export interface NavItem {
     | "categories"
     | "alerts"
     | "assistant"
+    | "scan"
     | "users"
     | "settings"
     | "audit";
@@ -45,6 +47,7 @@ const ICONS: Record<NavItem["icon"], LucideIcon> = {
   categories: FolderTree,
   alerts: Bell,
   assistant: Bot,
+  scan: ScanLine,
   users: Users,
   settings: Settings,
   audit: ScrollText,

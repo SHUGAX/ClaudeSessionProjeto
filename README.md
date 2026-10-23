@@ -96,7 +96,18 @@ append-only audit log.
   pt/en rule parser in mock mode) to one of six predefined read-only tools,
   executed with the user's own RLS-scoped session; answers are templated from
   the returned rows (the model never produces figures, never writes SQL).
-- **Tests**: 128 unit tests, 46 database/RLS tests, 12 Playwright end-to-end
+- **AT QR code (Portaria 195/2020)**: the QR code of Portuguese invoices is
+  read server-side on upload (PDF/JPEG/PNG); its fiscal fields (NIFs, number,
+  date, ATCUD, VAT totals) take precedence over the AI and are marked "QR" in
+  review; if the AI fails, the QR alone still produces a reviewable document.
+  ATCUD feeds duplicate detection; cancelled documents (E:A) get a warning.
+- **QR scan + document chat** (`/scan`, "Ler QR"): on a phone, the camera
+  scans a paper invoice's QR code (native BarcodeDetector or jsQR, photo
+  fallback), finds the matching document in the current organization and
+  opens a multi-turn conversation about it (Gemini grounded on that
+  document's data only, deterministic answers in mock mode). The same chat is
+  on the review page.
+- **Tests**: 155 unit tests, 46 database/RLS tests, 13 Playwright end-to-end
   tests (+1 opt-in subdomain test) — all passing against a real local
   Supabase stack.
 

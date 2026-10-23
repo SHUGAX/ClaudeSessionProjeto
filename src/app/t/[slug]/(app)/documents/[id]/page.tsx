@@ -4,6 +4,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 import { Callout } from "@/components/ui/callout";
+import { DocumentChat } from "@/features/assistant/document-chat";
 import { DocumentActions } from "@/features/documents/document-actions";
 import { DocumentViewer } from "@/features/documents/document-viewer";
 import { HistoryPanel, type HistoryEntry } from "@/features/documents/history-panel";
@@ -51,7 +52,7 @@ export default async function DocumentReviewPage({
   const { data: doc } = await supabase
     .from("documents")
     .select(
-      "id, organization_id, status, processing_status, processing_started_at, processing_error, document_type, original_filename, mime_type, file_size, file_sha256, supplier_id, supplier_name, supplier_tax_id, document_number, issue_date, due_date, currency, subtotal::text, tax_total::text, total::text, payment_reference, iban, purchase_order, category_id, notes, paid_at, possible_duplicate_of, current_extraction_id, validated_at, validated_by, created_at, updated_at",
+      "id, organization_id, status, processing_status, processing_started_at, processing_error, document_type, original_filename, mime_type, file_size, file_sha256, supplier_id, supplier_name, supplier_tax_id, document_number, issue_date, due_date, currency, subtotal::text, tax_total::text, total::text, payment_reference, iban, purchase_order, category_id, notes, paid_at, possible_duplicate_of, current_extraction_id, atcud, validated_at, validated_by, created_at, updated_at",
     )
     .eq("id", id)
     .eq("organization_id", orgId)
@@ -169,6 +170,7 @@ export default async function DocumentReviewPage({
         iban: ai.iban,
       }
     : null;
+  const qrFields = (ai?.qrFields ?? []).filter((f) => f !== "customerTaxId");
 
   const history: HistoryEntry[] = (audit.data ?? []).map((a) => {
     const oldValues = (a.old_values ?? {}) as Record<string, unknown>;
@@ -218,6 +220,7 @@ export default async function DocumentReviewPage({
           </div>
           <p className="text-muted-foreground mt-1 text-[13px]">
             {t.dynamic(`documentTypes.${doc.document_type}`)} · {doc.original_filename} ·{" "}
+            {doc.atcud ? `ATCUD ${doc.atcud} · ` : ""}
             {doc.validated_at
               ? t("review.humanValidated", {
                   name: validator.data?.full_name ?? validator.data?.email ?? "—",
@@ -298,10 +301,12 @@ export default async function DocumentReviewPage({
               duplicates={duplicates}
               duplicateLabels={duplicateLabels}
               aiValues={aiValues}
+              qrFields={qrFields}
               canEdit={canEdit}
               today={today}
             />
           ) : null}
+          {!processing && doc.status !== "failed" ? <DocumentChat documentId={doc.id} /> : null}
           <HistoryPanel
             entries={history}
             extractions={(extractions.data ?? []).map((x) => ({

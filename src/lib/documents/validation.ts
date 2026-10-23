@@ -22,7 +22,8 @@ export type IssueCode =
   | "possible_duplicate"
   | "weak_duplicate"
   | "missing_supplier"
-  | "invalid_iban";
+  | "invalid_iban"
+  | "cancelled_document";
 
 export interface ValidationIssue {
   code: IssueCode;
@@ -51,6 +52,8 @@ export interface ValidationContext {
   /** Today's date (ISO) in the organization's time zone. */
   today: string;
   duplicates: DuplicateMatch[];
+  /** AT document status read from the QR code ("A" = anulado / cancelled). */
+  atStatus?: string | null;
 }
 
 /** Absolute tolerance for arithmetic checks (rounding across several VAT lines). */
@@ -172,6 +175,10 @@ export function validateDocument(
   }
   if (doc.iban && !isValidIban(doc.iban)) {
     issues.push({ code: "invalid_iban", severity: "warning", field: "iban" });
+  }
+
+  if (ctx.atStatus === "A") {
+    issues.push({ code: "cancelled_document", severity: "warning" });
   }
 
   // Duplicates

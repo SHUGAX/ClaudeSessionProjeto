@@ -24,7 +24,7 @@ export type ReviewResult =
   | { ok: false; error: string; issues?: ValidationIssue[] };
 
 const EDITABLE_FIELDS =
-  "id, organization_id, status, document_type, supplier_id, supplier_name, supplier_tax_id, document_number, issue_date, due_date, currency, subtotal::text, tax_total::text, total::text, payment_reference, iban, purchase_order, category_id, notes, updated_at, file_sha256, validated_at";
+  "id, organization_id, status, document_type, supplier_id, supplier_name, supplier_tax_id, document_number, issue_date, due_date, currency, subtotal::text, tax_total::text, total::text, payment_reference, iban, purchase_order, category_id, notes, updated_at, file_sha256, validated_at, atcud";
 
 export async function duplicateCandidates(
   supabase: UserSupabaseClient,
@@ -42,11 +42,12 @@ export async function duplicateCandidates(
     );
   if (subject.supplierId && subject.issueDate)
     filters.push(`and(supplier_id.eq.${subject.supplierId},issue_date.eq.${subject.issueDate})`);
+  if (subject.atcud) filters.push(`atcud.eq."${subject.atcud.replace(/"/g, "")}"`);
   if (filters.length === 0) return [];
   const { data } = await supabase
     .from("documents")
     .select(
-      "id, supplier_id, supplier_tax_id, document_number, issue_date, total::text, file_sha256, status",
+      "id, supplier_id, supplier_tax_id, document_number, issue_date, total::text, file_sha256, status, atcud",
     )
     .eq("organization_id", organizationId)
     .neq("id", subject.id)
@@ -61,6 +62,7 @@ export async function duplicateCandidates(
     total: d.total,
     fileSha256: d.file_sha256,
     status: d.status,
+    atcud: d.atcud,
   }));
 }
 
@@ -184,6 +186,7 @@ export async function saveReview(rawInput: ReviewInput): Promise<ReviewResult> {
     issueDate: input.issueDate,
     total: input.total,
     fileSha256: current.file_sha256,
+    atcud: current.atcud,
   };
   const duplicates = findDuplicateMatches(
     subject,

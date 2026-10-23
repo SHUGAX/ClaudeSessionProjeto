@@ -16,6 +16,8 @@ export interface DuplicateSubject {
   issueDate: string | null;
   total: string | null;
   fileSha256: string | null;
+  /** ATCUD from the AT QR code, when known. */
+  atcud?: string | null;
 }
 
 export interface DuplicateCandidate extends DuplicateSubject {
@@ -73,7 +75,12 @@ export function findDuplicateMatches(
     if (subject.fileSha256 && candidate.fileSha256 === subject.fileSha256) {
       kind = "exact_file";
     } else if (sameSupplier(subject, candidate)) {
-      if (subjectNumber && normalizeDocumentNumber(candidate.documentNumber) === subjectNumber) {
+      if (subject.atcud && candidate.atcud && subject.atcud === candidate.atcud) {
+        kind = "same_number";
+      } else if (
+        subjectNumber &&
+        normalizeDocumentNumber(candidate.documentNumber) === subjectNumber
+      ) {
         kind = "same_number";
       } else if (
         subject.issueDate &&

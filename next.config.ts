@@ -47,6 +47,8 @@ const securityHeaders = [
 
 const nextConfig: NextConfig = {
   poweredByHeader: false,
+  // Native canvas + pdf.js worker are loaded at runtime by the QR reader.
+  serverExternalPackages: ["@napi-rs/canvas", "pdfjs-dist"],
   // Local subdomain development (e.g. empresa-a.localhost / *.lvh.me).
   allowedDevOrigins: [rootHost, `*.${rootHost}`],
   reactStrictMode: true,

@@ -1,4 +1,5 @@
 import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
+import QRCode from "qrcode";
 
 /**
  * Generates a SYNTHETIC invoice PDF (fictitious companies and values) for
@@ -38,9 +39,34 @@ export function invoiceTotals(invoice: SyntheticInvoice) {
 
 const pt = (v: string) => v.replace(".", ",");
 
+/** AT QR code payload (Portaria 195/2020) for a synthetic invoice. */
+export function syntheticAtQrPayload(invoice: SyntheticInvoice, atcud = "0"): string {
+  const totals = invoiceTotals(invoice);
+  const rate = totals.lines[0]?.taxRate ?? "23";
+  const [baseField, vatField] =
+    rate === "6" ? ["I3", "I4"] : rate === "13" ? ["I5", "I6"] : ["I7", "I8"];
+  return [
+    `A:${invoice.supplierTaxId}`,
+    `B:${invoice.customerTaxId}`,
+    "C:PT",
+    "D:FT",
+    "E:N",
+    `F:${invoice.issueDate.replace(/-/g, "")}`,
+    `G:${invoice.number}`,
+    `H:${atcud}`,
+    "I1:PT",
+    `${baseField}:${totals.subtotal}`,
+    `${vatField}:${totals.tax}`,
+    `N:${totals.tax}`,
+    `O:${totals.total}`,
+    "Q:SYNT",
+    "R:0000",
+  ].join("*");
+}
+
 export async function createSyntheticInvoicePdf(
   invoice: SyntheticInvoice,
-  options: { marker?: string } = {},
+  options: { marker?: string; atQr?: { atcud?: string } } = {},
 ): Promise<Uint8Array> {
   const totals = invoiceTotals(invoice);
   const pdf = await PDFDocument.create();
@@ -81,6 +107,17 @@ export async function createSyntheticInvoicePdf(
   text(`Total ilíquido: ${pt(totals.subtotal)} €`, 380, y, 10);
   text(`Total IVA: ${pt(totals.tax)} €`, 380, y - 16, 10);
   text(`TOTAL A PAGAR: ${pt(totals.total)} €`, 380, y - 36, 12, bold);
+
+  if (options.atQr) {
+    const png = await QRCode.toBuffer(syntheticAtQrPayload(invoice, options.atQr.atcud), {
+      errorCorrectionLevel: "M",
+      margin: 2,
+      width: 300,
+    });
+    const image = await pdf.embedPng(png);
+    page.drawImage(image, { x: 40, y: 60, width: 110, height: 110 });
+    text(`ATCUD: ${options.atQr.atcud ?? "0"}`, 160, 70, 8);
+  }
 
   const bytes = await pdf.save({ useObjectStreams: false });
   const expected = {

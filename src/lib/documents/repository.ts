@@ -7,6 +7,7 @@ import { numericParam, toJson } from "@/lib/supabase/values";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { countIssues } from "./validation";
 import { STALE_PROCESSING_MS } from "./status";
+import { findQrCodes } from "./qr-reader";
 import { normalizeDocumentNumber } from "./duplicates";
 import type { PipelineDeps } from "./pipeline";
 import { normalizeTaxId } from "@/lib/validation/tax-id";
@@ -48,6 +49,10 @@ export function createPipelineDeps(): PipelineDeps {
       if (error || !data)
         throw new Error(`storage_download_failed: ${error?.message ?? "no data"}`);
       return new Uint8Array(await data.arrayBuffer());
+    },
+
+    findQrCodes(bytes, mimeType) {
+      return findQrCodes(bytes, mimeType);
     },
 
     async saveExtraction(doc, result, actorUserId) {
@@ -103,11 +108,12 @@ export function createPipelineDeps(): PipelineDeps {
           `and(supplier_id.eq.${subject.supplierId},issue_date.eq.${subject.issueDate})`,
         );
       }
+      if (subject.atcud) filters.push(`atcud.eq."${subject.atcud.replace(/"/g, "")}"`);
       if (filters.length === 0) return [];
       const { data, error } = await admin
         .from("documents")
         .select(
-          "id, supplier_id, supplier_tax_id, document_number, issue_date, total, file_sha256, status",
+          "id, supplier_id, supplier_tax_id, document_number, issue_date, total, file_sha256, status, atcud",
         )
         .eq("organization_id", organizationId)
         .neq("id", subject.id)
@@ -124,6 +130,7 @@ export function createPipelineDeps(): PipelineDeps {
         total: d.total == null ? null : String(d.total),
         fileSha256: d.file_sha256,
         status: d.status,
+        atcud: d.atcud,
       }));
     },
 
@@ -151,6 +158,8 @@ export function createPipelineDeps(): PipelineDeps {
           payment_reference: data.paymentReference,
           iban: data.iban,
           purchase_order: data.purchaseOrder,
+          atcud: data.atcud ?? null,
+          at_qr_payload: data.atQrPayload ?? null,
           category_id: applied.categoryId,
           validation_issues: toJson(applied.issues),
           possible_duplicate_of: applied.possibleDuplicateOf,

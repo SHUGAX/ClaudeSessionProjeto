@@ -1,6 +1,7 @@
 "use client";
 
-import { Building2, CheckCircle2, Link2, Link2Off, Save, Sparkles } from "lucide-react";
+import Decimal from "decimal.js";
+import { Building2, CheckCircle2, Link2, Link2Off, QrCode, Save, Sparkles } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState, useTransition, type ReactNode } from "react";
 import { Badge } from "@/components/ui/badge";
@@ -106,6 +107,7 @@ export function ReviewForm({
   duplicates,
   duplicateLabels,
   aiValues,
+  qrFields = [],
   canEdit,
   today,
   footer,
@@ -122,6 +124,8 @@ export function ReviewForm({
   duplicates: DuplicateMatch[];
   duplicateLabels: Record<string, string>;
   aiValues: Partial<Record<keyof FormValues, string | null>> | null;
+  /** Form fields whose suggested value comes from the AT QR code. */
+  qrFields?: string[];
   canEdit: boolean;
   today: string;
   footer?: ReactNode;
@@ -249,17 +253,26 @@ export function ReviewForm({
     if (!aiValues || document.status === "validated" || !(key in aiValues)) return null;
     const ai = aiValues[key] ?? "";
     const current = values[key];
+    const parsed = parseAmount(current);
     const same = ["subtotal", "taxTotal", "total"].includes(key)
-      ? parseAmount(current) === (ai || null)
+      ? parsed !== null && Boolean(ai) && new Decimal(parsed).equals(new Decimal(ai))
       : current === (ai ?? "");
-    return same && ai ? (
+    if (!same || !ai) return null;
+    return qrFields.includes(key) ? (
+      <span
+        className="text-success inline-flex items-center gap-1 text-[11px] font-medium"
+        title={t("review.qrSource")}
+      >
+        <QrCode className="size-3" aria-hidden /> QR
+      </span>
+    ) : (
       <span
         className="text-info inline-flex items-center gap-1 text-[11px]"
         title={t("review.aiSuggested")}
       >
         <Sparkles className="size-3" aria-hidden /> IA
       </span>
-    ) : null;
+    );
   };
 
   const errorText = (field: string) => {

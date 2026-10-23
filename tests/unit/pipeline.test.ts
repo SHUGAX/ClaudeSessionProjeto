@@ -57,6 +57,7 @@ function makeDeps(result: ExtractionResult | Error, overrides: Partial<PipelineD
     provider,
     claimForProcessing: vi.fn(async () => true),
     downloadOriginal: vi.fn(async (d) => storage.get(d.storagePath)!),
+    findQrCodes: vi.fn(async () => [] as string[]),
     saveExtraction: vi.fn(async () => {
       calls.push("saveExtraction");
       return "ext-1";
@@ -163,5 +164,64 @@ describe("runExtractionPipeline", () => {
     const applied = vi.mocked(deps.applyExtraction).mock.calls[0]![1];
     expect(applied.possibleDuplicateOf).toBe("doc-0");
     expect(applied.issues.map((i) => i.code)).toContain("possible_duplicate");
+  });
+});
+
+describe("runExtractionPipeline with the AT QR code", () => {
+  const QR =
+    "A:123456789*B:999999990*C:PT*D:FT*E:N*F:20260110*G:FT 1*H:ABCD1234-1*I1:PT*I7:100.00*I8:23.00*N:23.00*O:123.00*Q:abcd*R:1";
+
+  it("QR values win over the AI and the source is recorded", async () => {
+    const ai = successResult();
+    if (!ai.ok) throw new Error("fixture");
+    const wrongAi: ExtractionResult = {
+      ...ai,
+      data: { ...ai.data, total: "999.00", documentNumber: "FT 9" },
+    };
+    const { deps } = makeDeps(wrongAi, {
+      findQrCodes: vi.fn(async () => ["https://example.com", QR]),
+    });
+    const outcome = await runExtractionPipeline(doc, "user-1", deps);
+    expect(outcome.status).toBe("success");
+    const saved = vi.mocked(deps.saveExtraction).mock.calls[0]![1];
+    expect(saved.provider).toBe("fake+at_qr");
+    const applied = vi.mocked(deps.applyExtraction).mock.calls[0]![1];
+    expect(applied.data.total).toBe("123.00");
+    expect(applied.data.documentNumber).toBe("FT 1");
+    expect(applied.data.atcud).toBe("ABCD1234-1");
+    expect(applied.data.supplier.name).toBe("Fornecedor X"); // from the AI
+    expect(applied.data.qrFields).toContain("total");
+  });
+
+  it("an AI failure no longer fails the document when a QR code exists", async () => {
+    const failure: ExtractionResult = {
+      ok: false,
+      ...base,
+      errorCode: "provider_unavailable",
+      errorMessage: "503",
+    };
+    const { deps } = makeDeps(failure, { findQrCodes: vi.fn(async () => [QR]) });
+    const outcome = await runExtractionPipeline(doc, "user-1", deps);
+    expect(outcome.status).toBe("success");
+    expect(deps.saveExtraction).toHaveBeenCalledTimes(2); // failed AI attempt + QR result
+    expect(deps.markFailed).not.toHaveBeenCalled();
+    const applied = vi.mocked(deps.applyExtraction).mock.calls[0]![1];
+    expect(applied.data.supplier).toMatchObject({ taxId: "123456789", name: "Fornecedor X" }); // known supplier
+    expect(applied.supplier?.id).toBe("sup-1");
+    expect(applied.data.qrFields).toContain("supplierName");
+    expect(deps.incrementUsage).toHaveBeenCalledWith("org-1", {
+      aiCalls: 1,
+      aiFailures: 1,
+      processed: 1,
+    });
+  });
+
+  it("warns when the QR code marks the document as cancelled", async () => {
+    const { deps } = makeDeps(successResult(), {
+      findQrCodes: vi.fn(async () => [QR.replace("E:N", "E:A")]),
+    });
+    await runExtractionPipeline(doc, "user-1", deps);
+    const applied = vi.mocked(deps.applyExtraction).mock.calls[0]![1];
+    expect(applied.issues.map((i) => i.code)).toContain("cancelled_document");
   });
 });

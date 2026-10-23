@@ -99,6 +99,7 @@ export default async function TenantAppLayout({
     { href: href("/suppliers"), label: "nav.suppliers", icon: "suppliers" },
     { href: href("/categories"), label: "nav.categories", icon: "categories" },
     { href: href("/alerts"), label: "nav.alerts", icon: "alerts", badge: alertsResult.count ?? 0 },
+    { href: href("/scan"), label: "nav.scan", icon: "scan" },
     { href: href("/assistant"), label: "nav.assistant", icon: "assistant" },
     ...(can.manageUsers(role)
       ? [{ href: href("/users"), label: "nav.users", icon: "users" } as NavItem]

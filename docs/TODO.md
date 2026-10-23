@@ -20,10 +20,11 @@ Legend: [x] done · [~] partial · [ ] pending
 - [x] Cron maintenance endpoint
 - [~] Email: console + Resend; no due-date notifications
 - [x] AI assistant (predefined RLS-scoped tools, templated answers)
+- [x] AT QR code reading on upload; camera QR scan → document + multi-turn chat
 - [ ] MFA enrollment UI
 
 ## Quality
 
-- [x] 128 unit tests · 46 RLS tests · 12 E2E (+1 opt-in subdomain)
+- [x] 155 unit tests · 46 RLS tests · 13 E2E (+1 opt-in subdomain)
 - [x] Docs (README + docs/*), CI workflow
 - [x] Lint / typecheck / build clean
