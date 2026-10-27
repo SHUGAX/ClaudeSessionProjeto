@@ -45,6 +45,15 @@ test("platform admin re-invites a pending administrator and deletes the company"
   await expect(invited.getByText(/convidado para se juntar a Empresa Apagar/)).toBeVisible();
   await context.close();
 
+  // "Reenviar" shows a new link that stays visible after the list refreshes.
+  await page.getByRole("button", { name: "Reenviar" }).click();
+  await expect(page.getByRole("cell", { name: "Pendente" })).toHaveCount(1);
+  await expect(page.getByRole("cell", { name: "Revogado" })).toHaveCount(2);
+  await page.waitForTimeout(2_000);
+  const resentLink = page.locator("td input[readonly][aria-label=URL]");
+  await expect(resentLink).toBeVisible();
+  expect(await resentLink.inputValue()).not.toBe(secondLink);
+
   // Deletion requires typing the identifier.
   const button = page.getByTestId("delete-organization");
   await expect(button).toBeDisabled();

@@ -370,45 +370,54 @@ export function OrganizationInvitationActions({
   const { t } = useI18n();
   const [pending, startTransition] = useTransition();
   const [link, setLink] = useState<string | null>(null);
-  if (status !== "pending" && status !== "expired") return null;
+  const actionable = status === "pending" || status === "expired";
+  // After a resend this row turns "revoked" on refresh; the new link must stay
+  // visible here until the administrator copies it.
+  if (!actionable && !link) return null;
   return (
     <div className="flex flex-col items-end gap-2">
-      <div className="flex justify-end gap-1.5">
-        <Button
-          variant="secondary"
-          size="sm"
-          disabled={pending}
-          onClick={() =>
-            startTransition(async () => {
-              const result = await resendOrganizationInvitationAction(invitationId);
-              if (result?.error) toast(t.dynamic(result.error), "error");
-              else {
-                toast(t("users.inviteSent", { email: result?.email ?? "" }));
-                setLink(result?.link ?? null);
-              }
-            })
-          }
-        >
-          {t("users.resend")}
-        </Button>
-        {status === "pending" ? (
+      {actionable ? (
+        <div className="flex justify-end gap-1.5">
           <Button
-            variant="danger-outline"
+            variant="secondary"
             size="sm"
             disabled={pending}
             onClick={() =>
               startTransition(async () => {
-                const result = await revokeOrganizationInvitationAction(invitationId);
+                const result = await resendOrganizationInvitationAction(invitationId);
                 if (result?.error) toast(t.dynamic(result.error), "error");
-                else toast(t("admin.invitationRevoked"));
+                else {
+                  toast(t("users.inviteSent", { email: result?.email ?? "" }));
+                  setLink(result?.link ?? null);
+                }
               })
             }
           >
-            {t("users.revoke")}
+            {t("users.resend")}
           </Button>
-        ) : null}
-      </div>
-      {link ? <InvitationLinkBox link={link} /> : null}
+          {status === "pending" ? (
+            <Button
+              variant="danger-outline"
+              size="sm"
+              disabled={pending}
+              onClick={() =>
+                startTransition(async () => {
+                  const result = await revokeOrganizationInvitationAction(invitationId);
+                  if (result?.error) toast(t.dynamic(result.error), "error");
+                  else toast(t("admin.invitationRevoked"));
+                })
+              }
+            >
+              {t("users.revoke")}
+            </Button>
+          ) : null}
+        </div>
+      ) : null}
+      {link ? (
+        <div className="w-72 max-w-full text-left sm:w-96">
+          <InvitationLinkBox link={link} />
+        </div>
+      ) : null}
     </div>
   );
 }
