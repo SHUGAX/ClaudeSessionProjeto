@@ -7,8 +7,10 @@ import { Callout } from "@/components/ui/callout";
 import { StatCard } from "@/components/ui/misc";
 import { Table, TBody, TD, TH, THead, TR } from "@/components/ui/table";
 import {
+  DeleteOrganizationForm,
   EditOrganizationForm,
   InviteOrganizationAdminForm,
+  OrganizationInvitationActions,
   OrganizationStatusButton,
 } from "@/features/admin/admin-forms";
 import { requirePlatformAdminPage } from "@/lib/auth/platform-admin";
@@ -20,6 +22,13 @@ import { tenantUrl } from "@/lib/tenancy/urls";
 import { formatBytes } from "@/lib/utils";
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+/** A pending invitation past its expiry date is shown (and handled) as expired. */
+function status(i: { status: string; expires_at: string }): string {
+  return i.status === "pending" && new Date(i.expires_at).getTime() < Date.now()
+    ? "expired"
+    : i.status;
+}
 
 export default async function AdminOrganizationDetailPage({
   params,
@@ -176,20 +185,32 @@ export default async function AdminOrganizationDetailPage({
                   <TH>{t("common.email")}</TH>
                   <TH>{t("common.status")}</TH>
                   <TH>{t("users.expiresAt")}</TH>
+                  <TH />
                 </tr>
               </THead>
               <TBody>
                 {(invitations ?? []).map((i) => (
                   <TR key={i.id}>
                     <TD className="text-[13px]">{i.email}</TD>
-                    <TD className="text-muted-foreground text-[13px]">{i.status}</TD>
+                    <TD className="text-muted-foreground text-[13px]">
+                      {t.dynamic(`admin.invitationStatus.${status(i)}`)}
+                    </TD>
                     <TD className="tabular text-muted-foreground text-[13px]">
                       {formatTimestamp(i.expires_at, locale)}
+                    </TD>
+                    <TD className="text-right">
+                      <OrganizationInvitationActions invitationId={i.id} status={status(i)} />
                     </TD>
                   </TR>
                 ))}
               </TBody>
             </Table>
+          </Card>
+          <Card className="border-danger/30">
+            <CardHeader title={t("admin.dangerZone")} />
+            <CardContent>
+              <DeleteOrganizationForm id={org.id} slug={org.slug} />
+            </CardContent>
           </Card>
         </div>
       </div>

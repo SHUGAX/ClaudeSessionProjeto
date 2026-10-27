@@ -33,7 +33,8 @@ export type AuditAction =
   | "supplier.updated"
   | "category.created"
   | "category.updated"
-  | "category.deleted";
+  | "category.deleted"
+  | "organization.deleted";
 
 export interface AuditEntry {
   organizationId: string | null;

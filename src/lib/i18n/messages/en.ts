@@ -510,6 +510,7 @@ export const en: Messages = {
       organization_updated: "Company updated",
       organization_suspended: "Company suspended",
       organization_reactivated: "Company reactivated",
+      organization_deleted: "Company deleted",
       settings_updated: "Settings changed",
       member_invited: "User invited",
       member_joined: "User joined",
@@ -598,6 +599,23 @@ export const en: Messages = {
     noDocumentAccess: "For privacy, platform administration has no access to company documents.",
     invitations: "Invitations",
     members: "Users",
+    invitationRevoked: "Invitation revoked.",
+    reinviteHint:
+      "If a pending invitation exists for this email, it is replaced by a new one (the previous link stops working).",
+    invitationStatus: {
+      pending: "Pending",
+      accepted: "Accepted",
+      revoked: "Revoked",
+      expired: "Expired",
+    },
+    dangerZone: "Danger zone",
+    deleteOrganization: "Delete company",
+    deleteDescription:
+      "Permanently deletes the company and all its data: documents and files, suppliers, categories, member access, invitations and history. User accounts remain (they may belong to other companies). This cannot be undone.",
+    deleteConfirmLabel: "To confirm, type the company identifier: {slug}",
+    deleteButton: "Delete permanently",
+    deleteSlugMismatch: "The identifier typed does not match the company.",
+    deleted: "Company deleted.",
   },
   assistant: {
     title: "Assistant",

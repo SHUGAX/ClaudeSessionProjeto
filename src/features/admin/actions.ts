@@ -275,6 +275,7 @@ export async function inviteOrganizationAdminAction(
       inviterName: profile?.full_name ?? admin.email,
       locale: await getLocale(),
       actorType: "platform_admin",
+      replacePending: true,
     });
     revalidatePath("/admin", "layout");
     return {
@@ -290,4 +291,145 @@ export async function inviteOrganizationAdminAction(
     }
     return { error: "errors.internal" };
   }
+}
+
+const uuid = z.string().uuid();
+
+/** Re-sends a pending invitation with a new link (the old link stops working). */
+export async function resendOrganizationInvitationAction(
+  invitationId: string,
+): Promise<AdminFormState> {
+  const admin = await requirePlatformAdmin();
+  if (!uuid.safeParse(invitationId).success) return { error: "errors.invalid_input" };
+  const db = createSupabaseAdminClient();
+  const { data: invitation } = await db
+    .from("invitations")
+    .select("id, email, role, status, organization_id, organizations!inner(name)")
+    .eq("id", invitationId)
+    .maybeSingle();
+  if (!invitation) return { error: "errors.not_found" };
+  if (invitation.status !== "pending" && invitation.status !== "expired")
+    return { error: "errors.conflict" };
+  try {
+    const profile = await getProfile();
+    const created = await createInvitation({
+      client: db,
+      organizationId: invitation.organization_id,
+      organizationName: invitation.organizations.name,
+      email: invitation.email,
+      role: invitation.role,
+      invitedBy: admin.id,
+      inviterName: profile?.full_name ?? admin.email,
+      locale: await getLocale(),
+      actorType: "platform_admin",
+      replacePending: true,
+    });
+    await recordAudit({
+      organizationId: invitation.organization_id,
+      actorUserId: admin.id,
+      actorType: "platform_admin",
+      action: "invitation.resent",
+      entityType: "invitation",
+      entityId: invitation.id,
+      newValues: { email: invitation.email },
+    });
+    revalidatePath("/admin", "layout");
+    return {
+      success: "users.inviteSent",
+      email: invitation.email,
+      link: created.emailDelivered ? undefined : created.link,
+    };
+  } catch (e) {
+    if (e instanceof AppError) {
+      if (e.message === "already_member") return { error: "users.alreadyMember" };
+      if (e.code === "limit_reached") return { error: "users.limitReached" };
+    }
+    return { error: "errors.internal" };
+  }
+}
+
+export async function revokeOrganizationInvitationAction(
+  invitationId: string,
+): Promise<AdminFormState> {
+  const admin = await requirePlatformAdmin();
+  if (!uuid.safeParse(invitationId).success) return { error: "errors.invalid_input" };
+  const db = createSupabaseAdminClient();
+  const { data, error } = await db
+    .from("invitations")
+    .update({ status: "revoked", revoked_at: new Date().toISOString() })
+    .eq("id", invitationId)
+    .eq("status", "pending")
+    .select("organization_id, email, role")
+    .maybeSingle();
+  if (error || !data) return { error: "errors.conflict" };
+  await recordAudit({
+    organizationId: data.organization_id,
+    actorUserId: admin.id,
+    actorType: "platform_admin",
+    action: "invitation.revoked",
+    entityType: "invitation",
+    entityId: invitationId,
+    oldValues: { email: data.email, role: data.role },
+  });
+  revalidatePath("/admin", "layout");
+  return { success: "admin.invitationRevoked" };
+}
+
+/**
+ * Permanently deletes an organization and ALL its data (documents, files,
+ * suppliers, members, invitations, tenant audit trail). User accounts stay:
+ * people may belong to other organizations. The caller must type the slug.
+ * A platform-level audit entry (organization_id null) records the deletion.
+ */
+export async function deleteOrganizationAction(
+  id: string,
+  confirmSlug: string,
+): Promise<AdminFormState> {
+  const admin = await requirePlatformAdmin();
+  if (!uuid.safeParse(id).success) return { error: "errors.invalid_input" };
+  const db = createSupabaseAdminClient();
+  const { data: org } = await db
+    .from("organizations")
+    .select("id, name, slug, logo_path")
+    .eq("id", id)
+    .maybeSingle();
+  if (!org) return { error: "errors.not_found" };
+  if (confirmSlug.trim().toLowerCase() !== org.slug) return { error: "admin.deleteSlugMismatch" };
+
+  // Files first: once the rows are gone their paths are unknown.
+  const { data: docs, error: docsError } = await db
+    .from("documents")
+    .select("storage_path")
+    .eq("organization_id", id);
+  if (docsError) return { error: "errors.internal" };
+  const paths = (docs ?? []).map((d) => d.storage_path).filter(Boolean);
+  for (let i = 0; i < paths.length; i += 100) {
+    const { error: removeError } = await db.storage
+      .from("documents")
+      .remove(paths.slice(i, i + 100));
+    if (removeError) {
+      logger.error("organization_delete_files_failed", { organizationId: id });
+      return { error: "errors.internal" };
+    }
+  }
+  if (org.logo_path) await db.storage.from("organization-logos").remove([org.logo_path]);
+
+  const { error } = await db.from("organizations").delete().eq("id", id);
+  if (error) {
+    logger.error("organization_delete_failed", { organizationId: id, code: error.code });
+    return { error: "errors.internal" };
+  }
+  await recordAudit({
+    organizationId: null,
+    actorUserId: admin.id,
+    actorType: "platform_admin",
+    action: "organization.deleted",
+    entityType: "organization",
+    entityId: id,
+    oldValues: { name: org.name, slug: org.slug },
+    metadata: { documents: paths.length },
+  });
+  logger.info("organization_deleted", { organizationId: id, documents: paths.length });
+  revalidatePath("/admin", "layout");
+  return { success: "admin.deleted" };
 }

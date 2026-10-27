@@ -515,6 +515,7 @@ export const ptPT = {
       organization_updated: "Empresa atualizada",
       organization_suspended: "Empresa suspensa",
       organization_reactivated: "Empresa reativada",
+      organization_deleted: "Empresa eliminada",
       settings_updated: "Definições alteradas",
       member_invited: "Utilizador convidado",
       member_joined: "Utilizador aderiu",
@@ -605,6 +606,23 @@ export const ptPT = {
       "Por privacidade, a administração da plataforma não tem acesso aos documentos das empresas.",
     invitations: "Convites",
     members: "Utilizadores",
+    invitationRevoked: "Convite revogado.",
+    reinviteHint:
+      "Se já existir um convite pendente para este email, é substituído por um novo (o link anterior deixa de funcionar).",
+    invitationStatus: {
+      pending: "Pendente",
+      accepted: "Aceite",
+      revoked: "Revogado",
+      expired: "Expirado",
+    },
+    dangerZone: "Zona de perigo",
+    deleteOrganization: "Eliminar empresa",
+    deleteDescription:
+      "Elimina definitivamente a empresa e todos os seus dados: documentos e ficheiros, fornecedores, categorias, utilizadores associados, convites e histórico. As contas dos utilizadores mantêm-se (podem pertencer a outras empresas). Não é possível desfazer.",
+    deleteConfirmLabel: "Para confirmar, escreva o identificador da empresa: {slug}",
+    deleteButton: "Eliminar definitivamente",
+    deleteSlugMismatch: "O identificador escrito não corresponde ao da empresa.",
+    deleted: "Empresa eliminada.",
   },
   assistant: {
     title: "Assistente",

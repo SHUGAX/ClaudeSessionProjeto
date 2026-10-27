@@ -25,6 +25,6 @@ Legend: [x] done · [~] partial · [ ] pending
 
 ## Quality
 
-- [x] 155 unit tests · 46 RLS tests · 13 E2E (+1 opt-in subdomain)
+- [x] 155 unit tests · 48 RLS tests · 14 E2E (+1 opt-in subdomain)
 - [x] Docs (README + docs/*), CI workflow
 - [x] Lint / typecheck / build clean

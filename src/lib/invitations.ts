@@ -50,6 +50,8 @@ export async function createInvitation(params: {
   inviterName: string;
   locale: Locale;
   actorType: "user" | "platform_admin";
+  /** Revoke a still-pending invitation for the same email instead of failing. */
+  replacePending?: boolean;
 }): Promise<CreatedInvitation> {
   const email = params.email.trim().toLowerCase();
   const admin = createSupabaseAdminClient();
@@ -68,6 +70,21 @@ export async function createInvitation(params: {
       .eq("user_id", existingProfile.id)
       .maybeSingle();
     if (existingMember) throw new AppError("conflict", "already_member");
+  }
+
+  // Re-inviting replaces the pending invitation: the old link stops working and
+  // it no longer counts against the user limit.
+  let replaced = 0;
+  if (params.replacePending) {
+    const { data: revoked, error: revokeError } = await params.client
+      .from("invitations")
+      .update({ status: "revoked", revoked_at: new Date().toISOString() })
+      .eq("organization_id", params.organizationId)
+      .eq("email", email)
+      .eq("status", "pending")
+      .select("id");
+    if (revokeError) throw new AppError("internal", revokeError.message);
+    replaced = revoked?.length ?? 0;
   }
 
   await assertUserCapacity(params.organizationId);
@@ -128,7 +145,7 @@ export async function createInvitation(params: {
     entityType: "invitation",
     entityId: invitation.id,
     newValues: { email, role: params.role },
-    metadata: { emailDelivered: delivered },
+    metadata: { emailDelivered: delivered, ...(replaced ? { replacedPending: replaced } : {}) },
   });
 
   return { invitationId: invitation.id, link, emailDelivered: delivered };

@@ -101,13 +101,18 @@ append-only audit log.
   date, ATCUD, VAT totals) take precedence over the AI and are marked "QR" in
   review; if the AI fails, the QR alone still produces a reviewable document.
   ATCUD feeds duplicate detection; cancelled documents (E:A) get a warning.
+- **Platform admin**: re-inviting an email with a pending invitation replaces
+  it (new link, old link invalid); pending/expired invitations can be resent
+  or revoked; a company can be permanently deleted (type the identifier to
+  confirm) — all its data and stored files are removed, user accounts remain,
+  and a platform-level audit entry records the deletion.
 - **QR scan + document chat** (`/scan`, "Ler QR"): on a phone, the camera
   scans a paper invoice's QR code (native BarcodeDetector or jsQR, photo
   fallback), finds the matching document in the current organization and
   opens a multi-turn conversation about it (Gemini grounded on that
   document's data only, deterministic answers in mock mode). The same chat is
   on the review page.
-- **Tests**: 155 unit tests, 46 database/RLS tests, 13 Playwright end-to-end
+- **Tests**: 155 unit tests, 48 database/RLS tests, 14 Playwright end-to-end
   tests (+1 opt-in subdomain test) — all passing against a real local
   Supabase stack.
 

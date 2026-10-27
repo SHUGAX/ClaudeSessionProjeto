@@ -370,4 +370,49 @@ describeDb("Row Level Security — tenant isolation", () => {
       await expectDenied(IDS.ownerA, sql);
     });
   });
+  // Runs last: deletes Organization B.
+  describe("organization deletion", () => {
+    it("tenant owners cannot delete their organization", async () => {
+      const deleted = await db
+        .asUser(
+          IDS.ownerB,
+          async (c) =>
+            (await c.query("delete from organizations where id = $1", [IDS.orgB])).rowCount ?? 0,
+        )
+        .catch(() => 0);
+      expect(deleted).toBe(0);
+    });
+
+    it("the platform deletion removes all tenant data and leaves other tenants intact", async () => {
+      const tables = [
+        "documents",
+        "suppliers",
+        "categories",
+        "organization_members",
+        "invitations",
+        "audit_logs",
+      ];
+      const before = await db.admin.query(
+        "select count(*)::int as n from documents where organization_id = $1",
+        [IDS.orgA],
+      );
+      await db.admin.query("delete from organizations where id = $1", [IDS.orgB]);
+      for (const table of tables) {
+        const { rows } = await db.admin.query(
+          `select count(*)::int as n from ${table} where organization_id = $1`,
+          [IDS.orgB],
+        );
+        expect(rows[0].n, table).toBe(0);
+      }
+      const after = await db.admin.query(
+        "select count(*)::int as n from documents where organization_id = $1",
+        [IDS.orgA],
+      );
+      expect(after.rows[0].n).toBe(before.rows[0].n);
+      const { rows: profiles } = await db.admin.query("select 1 from profiles where id = $1", [
+        IDS.ownerB,
+      ]);
+      expect(profiles.length).toBe(1);
+    });
+  });
 });

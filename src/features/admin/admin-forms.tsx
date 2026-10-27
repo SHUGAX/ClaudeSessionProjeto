@@ -2,6 +2,7 @@
 
 import { Copy } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useActionState, useEffect, useState, useTransition } from "react";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Callout } from "@/components/ui/callout";
@@ -14,7 +15,10 @@ import { useI18n } from "@/lib/i18n/client";
 import { slugify } from "@/lib/tenancy/slug";
 import {
   createOrganizationAction,
+  deleteOrganizationAction,
   inviteOrganizationAdminAction,
+  resendOrganizationInvitationAction,
+  revokeOrganizationInvitationAction,
   setOrganizationStatusAction,
   updateOrganizationAction,
 } from "./actions";
@@ -349,7 +353,112 @@ export function InviteOrganizationAdminForm({ organizationId }: { organizationId
         </Field>
         <SubmitButton>{t("admin.inviteAdmin")}</SubmitButton>
       </form>
+      <p className="text-muted-foreground text-xs">{t("admin.reinviteHint")}</p>
       <FormMessage error={state?.error} />
     </div>
+  );
+}
+
+/** Resend (new link) / revoke buttons for a pending or expired invitation. */
+export function OrganizationInvitationActions({
+  invitationId,
+  status,
+}: {
+  invitationId: string;
+  status: string;
+}) {
+  const { t } = useI18n();
+  const [pending, startTransition] = useTransition();
+  const [link, setLink] = useState<string | null>(null);
+  if (status !== "pending" && status !== "expired") return null;
+  return (
+    <div className="flex flex-col items-end gap-2">
+      <div className="flex justify-end gap-1.5">
+        <Button
+          variant="secondary"
+          size="sm"
+          disabled={pending}
+          onClick={() =>
+            startTransition(async () => {
+              const result = await resendOrganizationInvitationAction(invitationId);
+              if (result?.error) toast(t.dynamic(result.error), "error");
+              else {
+                toast(t("users.inviteSent", { email: result?.email ?? "" }));
+                setLink(result?.link ?? null);
+              }
+            })
+          }
+        >
+          {t("users.resend")}
+        </Button>
+        {status === "pending" ? (
+          <Button
+            variant="danger-outline"
+            size="sm"
+            disabled={pending}
+            onClick={() =>
+              startTransition(async () => {
+                const result = await revokeOrganizationInvitationAction(invitationId);
+                if (result?.error) toast(t.dynamic(result.error), "error");
+                else toast(t("admin.invitationRevoked"));
+              })
+            }
+          >
+            {t("users.revoke")}
+          </Button>
+        ) : null}
+      </div>
+      {link ? <InvitationLinkBox link={link} /> : null}
+    </div>
+  );
+}
+
+/** Permanent deletion; the platform administrator must type the slug. */
+export function DeleteOrganizationForm({ id, slug }: { id: string; slug: string }) {
+  const { t } = useI18n();
+  const router = useRouter();
+  const [confirm, setConfirm] = useState("");
+  const [error, setError] = useState<string | undefined>();
+  const [pending, startTransition] = useTransition();
+  return (
+    <form
+      className="flex flex-col gap-3"
+      onSubmit={(e) => {
+        e.preventDefault();
+        setError(undefined);
+        startTransition(async () => {
+          const result = await deleteOrganizationAction(id, confirm);
+          if (result?.error) {
+            setError(result.error);
+            return;
+          }
+          toast(t("admin.deleted"));
+          router.replace("/admin/organizations");
+        });
+      }}
+    >
+      <p className="text-muted-foreground text-[13px]">{t("admin.deleteDescription")}</p>
+      <Field label={t("admin.deleteConfirmLabel", { slug })} htmlFor="delete-confirm">
+        <Input
+          id="delete-confirm"
+          value={confirm}
+          onChange={(e) => setConfirm(e.target.value)}
+          autoComplete="off"
+          spellCheck={false}
+          className="font-mono"
+        />
+      </Field>
+      <FormMessage error={error} />
+      <div className="flex justify-end">
+        <Button
+          type="submit"
+          variant="danger"
+          disabled={pending || confirm.trim().toLowerCase() !== slug}
+          data-testid="delete-organization"
+        >
+          {t("admin.deleteButton")}
+        </Button>
+      </div>
+    </form>
   );
 }
